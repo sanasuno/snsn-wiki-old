@@ -9,5 +9,8 @@ export const ja = {
 
   // サイト全体
   'site.title': 'snsn-wiki',
-  'site.description': 'Astro製パーソナルウィキ'
+  'site.description': 'Astro製パーソナルウィキ',
+
+  // OGP
+  'og.locale': 'ja_JP'
 };

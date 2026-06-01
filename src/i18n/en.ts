@@ -9,5 +9,8 @@ export const en = {
 
   // Site wide
   'site.title': 'snsn-wiki',
-  'site.description': 'Astro-powered personal wiki'
+  'site.description': 'Astro-powered personal wiki',
+
+  // OGP
+  'og.locale': 'en_US'
 };
