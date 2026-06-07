@@ -19,6 +19,7 @@
     --color-bg: #ffffff;
     --color-bg-hover: #f0f0f0;
     --color-bg-accent: #c8e6c9;
+    --color-bg-accent-hover: #a5d6a7;
     --color-bg-secondary: #f5f5f5;
     --color-bg-secondary-hover: #e5e5e5;
     --color-bg-tertiary: #f0f0f0;
@@ -33,14 +34,21 @@
     --color-accent-hover: #066a3d;
     --color-accent-active: #04522b;
     /* リンク */
-    --color-link: #4863ea;
-    --color-link-hover: #3a4fb8;
-    --color-link-visited: #6a5acd;
+    --color-link: #4f46e5;
+    --color-link-hover: #43338c;
+    --color-link-visited: #7c3aed;
+    --color-wikilink: #08824f;
+    --color-wikilink-missing: #dc2626;
 
     /* 角丸 */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
+
+    /* 影 */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
     
     /* トランジション */
     --transition: 150ms ease;
@@ -51,11 +59,13 @@
     --color-bg: #1a1a1a;
     --color-bg-hover: #2a2a2a;
     --color-bg-accent: #b8d6b9;
+    --color-bg-accent-hover: #95c497;
     --color-bg-secondary: #2a2a2a;
     --color-bg-secondary-hover: #3a3a3a;
     --color-bg-tertiary: #303030;
     /* ボーダー */
     --color-border: #404040;
+    
     /* テキスト */
     --color-text: #e0e0e0;
     --color-text-muted: #a0a0a0;
@@ -66,6 +76,8 @@
     --color-accent-active: #04522b;
     /* リンク */
     --color-link: #4863ea;
-    --color-link-hover: #3a4fb8;
+    --color-link-hover: #6a75f0;
     --color-link-visited: #6a5acd;
+    --color-wikilink: #08824f;
+    --color-wikilink-missing: #dc2626;
 }

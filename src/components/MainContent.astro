@@ -4,25 +4,31 @@
  * メインコンテンツを定義するコンポーネント
  * @param {string} title ページタイトル
  * @param {Locale} locale ロケール
- * @param {string} nPrefixBaseUrl プレフィックスベースURL
+ * @param {string} localeBaseUrl ロケールベースURL
  * @param {string} currentPath 現在のパス
+ * @param {string} category カテゴリ
  * @param {string[]} tags タグ
  * @param {Date} date 作成日
  * @param {Date} updated 更新日
+ * @param {boolean} isFallbackContent フォールバックコンテンツかどうか
+ * @param {boolean} isWikiPage ウィキページかどうか
  */
 
 import { t, type Locale, formatDate } from '@i18n/i18n.config';
 interface Props {
     title: string;
-    nPrefixBaseUrl: string;
+    localeBaseUrl: string;
     locale: Locale;
     currentPath: string;
+    category?: string;
     tags?: string[];
     date?: Date;
     updated?: Date;
+    isFallbackContent?: boolean;
+    isWikiPage?: boolean;
 }
 
-const { title, nPrefixBaseUrl, locale, currentPath, tags = [], date, updated } = Astro.props;
+const { title, localeBaseUrl, locale, currentPath, category, tags = [], date, updated, isFallbackContent = false, isWikiPage = false } = Astro.props;
 const year = new Date().getFullYear();
 
 type Crumb = {
@@ -30,15 +36,27 @@ type Crumb = {
     href: string;
 }
 
-function buildCrumbs(path: string, title: string, nPrefixBaseUrl: string): Crumb[] {
-    const strippedPath = path.startsWith(nPrefixBaseUrl) 
-        ? path.slice(nPrefixBaseUrl.length) || '/'
+/**
+ * パンくずリストを構築する
+ * @param path パス
+ * @param title タイトル
+ * @param localeBaseUrl ロケールベースURL
+ * @param isWikiPage ウィキページかどうか
+ * @returns パンくずリスト
+ */
+function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiPage: boolean): Crumb[] {
+    const escapedPrefix = localeBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const normalizedPath = isWikiPage 
+        ? path.replace(new RegExp(`^${escapedPrefix}/wiki/`), `${localeBaseUrl}/`)
         : path;
+    const strippedPath = normalizedPath.startsWith(localeBaseUrl) 
+        ? normalizedPath.slice(localeBaseUrl.length) || '/'
+        : normalizedPath;
     const segments = strippedPath.split('/').filter(Boolean);
     const crumbs: Crumb[] = [
         {
             label: t('nav.home', locale),
-            href: nPrefixBaseUrl
+            href: localeBaseUrl
         }
     ]
     let accumulated = '';
@@ -50,15 +68,21 @@ function buildCrumbs(path: string, title: string, nPrefixBaseUrl: string): Crumb
             : segment;
         crumbs.push({
             label,
-            href: `${nPrefixBaseUrl}${accumulated}`
+            href: accumulated
         });
     });
     return crumbs;
 }
 
-const crumbs: Crumb[] = buildCrumbs(currentPath, title, nPrefixBaseUrl);
+const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPage);
 ---
 <main class="main-content" id="main-content">
+    {isFallbackContent && (
+        <div class="fallback-warning">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{t('fallback.warning', locale)}</span>
+        </div>
+    )}
     <header class="page-header">
         <!-- パンくずリスト -->
         <nav class="breadcrumb">
@@ -69,13 +93,27 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, nPrefixBaseUrl);
                     return (
                         <>
                             <li class:list={[{ 'breadcrumb__current': isLast }]} aria-current={isLast ? 'page' : undefined}>
-                                {crumb.href && !isHome && !isLast
-                                    ? <i class="fa-solid fa-folder" /><a href={crumb.href}>{crumb.label}</a>
-                                    : isHome && !isLast
-                                        ? <i class="fa-solid fa-house" /><a href={crumb.href}>{crumb.label}</a>
-                                        : isHome && isLast
-                                            ? <i class="fa-solid fa-house" /><span>{crumb.label}</span>
-                                            : <i class="fa-regular fa-file" /><span>{crumb.label}</span>
+                                {crumb.href &&
+                                    isHome
+                                        ? isLast
+                                            ? <>
+                                                <i class="fa-solid fa-house" />
+                                                <span>{crumb.label}</span>
+                                            </>
+                                            : <>
+                                                <i class="fa-solid fa-house" />
+                                                <a href={crumb.href}>{crumb.label}</a>
+                                            </>
+                                        : isLast
+                                            ? <>
+                                                <i class="fa-regular fa-file" />
+                                                <span>{crumb.label}</span>
+                                            </>
+                                            : <>
+                                                <!-- カテゴリページへのリンク -->
+                                                <i class="fa-solid fa-folder" />
+                                                <a href={`${localeBaseUrl}/category${crumb.href}`}>{t(`category.${crumb.label}`, locale)}</a>
+                                            </>
                                 }
                             </li>
                             {!isLast && (
@@ -88,8 +126,18 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, nPrefixBaseUrl);
                 })}
             </ol>
         </nav>
+        <!-- タイトル -->
         <h1 class="page-title">{title}</h1>
+        <!-- メタ情報 -->
         <div class="page-meta">
+            {category && (
+                <div class="page-category">
+                    <a href={`${localeBaseUrl}/category/${encodeURIComponent(category)}`}>
+                        <i class="fa-regular fa-folder" />
+                        {t(`category.${category}`, locale)}
+                    </a>
+                </div>
+            )}
             {(date || updated) && (
                 <div class="page-meta-dates">
                     {date && (
@@ -106,22 +154,26 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, nPrefixBaseUrl);
                     )}
                 </div>
             )}
-            {tags.length > 0 && (
-                <div class="page-tags">
-                    {tags.map(tag => (
-                        <a href={`${nPrefixBaseUrl}/tags/${encodeURIComponent(tag)}`} class="tag">
-                            #{tag}
-                        </a>
-                    ))}
-                </div>
-            )}
         </div>
     </header>
-    <slot />
+    <article class="article-content">
+        <slot />
+    </article>
+    <!-- タグ -->
+    {tags.length > 0 && (
+        <div class="page-tags">
+            {tags.map(tag => (
+                <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="tag">
+                    #{tag}
+                </a>
+            ))}
+        </div>
+    )}
+    <!-- フッター -->
     <footer class="site-footer">
         <div class="site-footer-links">
-            <a href={`${nPrefixBaseUrl}/privacy`}>{t('footer.privacy', locale)}</a>
-            <a href={`${nPrefixBaseUrl}/terms`}>{t('footer.terms', locale)}</a>
+            <a href={`${localeBaseUrl}/privacy`}>{t('footer.privacy', locale)}</a>
+            <a href={`${localeBaseUrl}/terms`}>{t('footer.terms', locale)}</a>
         </div>
         <div class="site-footer-credit">
             © {year} {t('site.title', locale)}.

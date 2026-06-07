@@ -3,40 +3,30 @@
  * @components/Header.astro
  * サイト全体のヘッダーを定義するコンポーネント
  * @param {Locale} locale - ロケール
- * @param {string} nPrefixBaseUrl - ベースURL
+ * @param {string} localeBaseUrl - ロケールベースURL
  * @param {string} currentPath - 現在のパス
  */
 
 import { t, locales, type Locale, showLanguageSwitcher } from "@i18n/i18n.config";
+import { headerNavigation } from "@layouts/header.config";
 
 interface Props {
     locale: Locale;
-    nPrefixBaseUrl: string;
+    localeBaseUrl: string;
     currentPath: string;
 }
 
-const { nPrefixBaseUrl, locale, currentPath } = Astro.props;
+const { localeBaseUrl, locale, currentPath }: Props = Astro.props;
 
-type NavItem = {
-    path: string;
-    icon: string;
-    i18nKey: Parameters<typeof t>[0];
-}
-
-const navItems: NavItem[] = [
-    { path: '/', icon: 'fa-solid fa-house', i18nKey: 'nav.home' },
-    { path: '/category', icon: 'fa-solid fa-folder', i18nKey: 'nav.category' },
-    { path: '/tags', icon: 'fa-solid fa-tags', i18nKey: 'nav.tags' },
-    { path: '/graph', icon: 'fa-solid fa-diagram-project', i18nKey: 'nav.graph' }
-]
+const navItems= headerNavigation;
 
 // 現在のURLに基づいてナビゲーションのアクティブ状態を判定する関数
 // normalize()による正規化が前提
-function isActive(targetPath: string, currentPath: string, nPrefixBaseUrl: string): boolean {
-    const targetUrl = `${nPrefixBaseUrl}${targetPath}`;
+function isActive(targetPath: string, currentPath: string, localeBaseUrl: string): boolean {
+    const targetUrl = `${localeBaseUrl}${targetPath}`;
     // ルートパスの場合、自身のパスと一致する場合にアクティブ
     if (targetPath === '/') {
-        return currentPath === nPrefixBaseUrl;
+        return currentPath === localeBaseUrl;
     }
     // 他のパスの場合、対象URL自身またはそのサブパスである場合にアクティブ
     return (
@@ -53,13 +43,13 @@ function isActive(targetPath: string, currentPath: string, nPrefixBaseUrl: strin
     </button>
 
     <!-- サイトタイトル -->
-    <a href={nPrefixBaseUrl} class="site-title">{t("site.title", locale)}</a>
+    <a href={localeBaseUrl} class="site-title">{t("site.title", locale)}</a>
 
     <!-- ナビゲーション -->
     <nav class="header-nav" aria-label={t("header.navigation", locale)}>
         {
             navItems.map((item) => (
-                <a href={nPrefixBaseUrl + item.path} class={isActive(item.path, currentPath, nPrefixBaseUrl) ? 'active': ''}>
+                <a href={localeBaseUrl + item.path} class:list={[{ active: isActive(item.path, currentPath, localeBaseUrl) }]}>
                     <i class={item.icon}></i>
                     <span class="nav-label" data-i18n={item.i18nKey}>
                         {t(item.i18nKey, locale)}

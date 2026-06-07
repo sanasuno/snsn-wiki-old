@@ -10,16 +10,20 @@ import { en } from './en';
 export const translations = {
   ja,
   en
-};
+} as const;
 export type Locale = keyof typeof translations;
 export const locales = Object.keys(translations) as Locale[];
+const dateLocaleMap: Record<Locale, string> = {
+  ja: 'ja-JP',
+  en: 'en-US',
+};
+
 
 // デフォルトロケール指定
 export const defaultLocale: Locale = 'ja';
 
 // 言語切替ボタンを表示するか
-// true: 表示する, false: 表示しない
-export const showLanguageSwitcher = true;
+export const showLanguageSwitcher: boolean = locales.length > 1;
 
 // 与えられた言語とキーから翻訳を返す関数
 export function t(key: string, locale: Locale = defaultLocale): string {
@@ -30,7 +34,7 @@ export function t(key: string, locale: Locale = defaultLocale): string {
 
 // ロケールに適した日付形式で日付をフォーマットする関数
 export function formatDate(date: Date, locale: Locale = defaultLocale): string {
-    return date.toLocaleDateString(locale, {
+    return date.toLocaleDateString(dateLocaleMap[locale], {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

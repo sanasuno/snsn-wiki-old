@@ -1,0 +1,44 @@
+---
+/**
+ * @components/Toc
+ * 目次コンポーネント
+ * 
+ * @param props - コンポーネントプロパティ
+ * @param props.headings - 見出し配列
+ * @param props.locale - ロケール
+ */
+import {t, type Locale} from '@i18n/i18n.config';
+interface Props {
+  headings: Array<{ 
+    slug: string; 
+    depth: number; 
+    text: string 
+  }>;
+  locale: Locale;
+}
+
+const { headings, locale } = Astro.props;
+
+// 表示する見出しを絞り込み (h2〜h4)
+const filtered = headings.filter(h => h.depth >= 2 && h.depth <= 4);
+---
+{filtered.length > 0 && (
+    <nav aria-label={t('toc.title', locale)}>
+        <div class="toc-title">
+            {t('toc.title', locale)}
+        </div>
+        <ol class="toc-nav">
+            {filtered.map(heading => (
+                <li class={`depth-${heading.depth}`}>
+                    <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+            ))}
+        </ol>
+    </nav>
+)}
+<!-- モバイル用オーバーレイ -->
+<div class="toc-overlay" id="toc-overlay"></div>
+<!-- フローティングボタン -->
+<button class="toc-drawer-button" id="toc-drawer-button" aria-label={t('toc.open', locale)}>
+    <i class="fa-solid fa-list-ul"></i>
+</button>

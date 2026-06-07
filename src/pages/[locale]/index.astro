@@ -9,11 +9,11 @@ import { t, locales, type Locale } from '@i18n/i18n.config';
 
 export const getStaticPaths = () => {
 	return locales.map((locale) => ({
-		params: { lang: locale },
+		params: { locale },
 	}));
 };
 
-const locale = Astro.params.lang as Locale;
+const locale = Astro.params.locale as Locale;
 
 const alternateLinks = locales.map((locale) => ({
 	locale: locale,

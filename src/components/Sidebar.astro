@@ -5,39 +5,33 @@
  * @layout/sidebar.config.ts からナビゲーションを読み込み表示する
  * @param {Object} props
  * @param {Locale} props.locale - ロケール
- * @param {string} props.nPrefixBaseUrl - プレフィックスベースURL
+ * @param {string} props.localeBaseUrl - ロケールベースURL
  * @param {string} props.currentPath - 現在のパス
  */
 import { getCollection } from "astro:content";
 import { t, defaultLocale, type Locale } from "@i18n/i18n.config";
 import { sidebarNavigation, autoAddUnknownCategories } from "@layouts/sidebar.config";
-import { normalize } from "@scripts/utils";
+import { removeTrailingSlash, getRoute, getBaseSlug } from "@scripts/utils";
 
 interface Props { 
     locale: Locale;
-    nPrefixBaseUrl: string;
+    localeBaseUrl: string;
+    wikiBaseUrl: string;
     currentPath: string;
 }
 
-const { nPrefixBaseUrl, locale, currentPath } = Astro.props;
+const { localeBaseUrl, wikiBaseUrl, locale, currentPath } = Astro.props;
+
+
 
 // 現在のパスが指定されたパスと一致するかチェック
 function isCurrentPath(path: string): boolean {
-    const route = normalize(path);
+    const route = removeTrailingSlash(path);
     return currentPath === route;
 }
 // 現在のページIDが指定されたページIDと一致するかチェック
 function isCurrentPageId(pageId: string): boolean {
-    return isCurrentPath(getRoute(pageId));
-}
-
-// スラッグからルートを取得する関数
-function getBaseSlug(pageId: string): string {
-    return pageId.includes('/') ? pageId.split('/').slice(1).join('/') : pageId;
-}
-function getRoute(pageId: string): string {
-    const baseSlug = getBaseSlug(pageId);
-    return `${nPrefixBaseUrl}/${baseSlug}`.replace(/\/+/g, '/');
+    return isCurrentPath(getRoute(pageId, wikiBaseUrl));
 }
 
 // 全ページを取得
@@ -89,65 +83,22 @@ for (const page of pages) {
 
 const renderedCategories = new Set<string>();
 
+type WikiPage = typeof allPages[0];
+const sorters: Record<string, (a: WikiPage, b: WikiPage) => number > = {
+    title: (a, b) => a.data.title.localeCompare(b.data.title),
+    order: (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
+    date: (a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0),
+    updated: (a, b) => (b.data.updated?.getTime() ?? 0) - (a.data.updated?.getTime() ?? 0),
+};
+
 ---
 
 <aside class="sidebar" id="sidebar">
     <nav aria-label={t("sidebar.navigation", locale)}>
         {sidebarNavigation.map(section => {
             const defaultCollapsed = section.collapsed ?? false;
-            const sectionTitle = t(section.title, locale);
-            const storageKey = `snsn-sidebar-${section.title}`;
-
-            if (section.category && !section.items) {
-                // カテゴリ指定あり、アイテム指定なしの場合
-                const sectionCategory = t(section.category, locale);
-
-                // 合致するカテゴリのページを収集
-                const categoryPages = byCategory[sectionCategory] || [];
-                if (categoryPages.length === 0) {
-                    return null;
-                }
-                renderedCategories.add(sectionCategory);
-                
-                // ソート
-                const sorted = [...categoryPages].sort((a, b) => {
-                    if (section.autoSort === "order") {
-                        return (a.data.order ?? 0) - (b.data.order ?? 0);
-                    } else if (section.autoSort === "date") {
-                        return (
-                            (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0)
-                        );
-                    } else if (section.autoSort === "updated") {
-                        return (
-                            (b.data.updated?.getTime() ?? 0) - (a.data.updated?.getTime() ?? 0)
-                        );
-                    }
-                    return a.data.title.localeCompare(b.data.title);
-                });
-
-                // レンダリング
-                return (
-                    <section class="sidebar-section">
-                        <button class="sidebar-section-title sidebar-toggle" data-storage-key={storageKey} aria-expanded={defaultCollapsed ? "false" : "true"}>
-                            {sectionTitle && <i class={`${section.icon} fa-fw`} />}
-                            {sectionTitle}
-                            <i class="fa-solid fa-chevron-down sidebar-chevron" />
-                        </button>
-                        <div class={`sidebar-nav sidebar-collapsible${defaultCollapsed ? ' collapsed' : ''}`}>
-                            {
-                                sorted.map(page => {
-                                    return (
-                                        <a href={getRoute(page.id)} class={isCurrentPageId(page.id) ? 'current' : ''}>
-                                            <i class="fa-regular fa-file-lines fa-fw" />
-                                            {page.data.title}
-                                        </a>
-                                    )
-                                })
-                            }
-                        </div>
-                    </section>
-                );
-            }
+            const sectionTitle = t(section.titleKey, locale);
+            const storageKey = `snsn-sidebar-${section.titleKey}`;
 
             if (section.items) {
                 // アイテム指定ありの場合
@@ -161,26 +112,21 @@ const renderedCategories = new Set<string>();
                         <div class={`sidebar-nav sidebar-collapsible${defaultCollapsed ? ' collapsed' : ''}`}>
                             {section.items.map(item => {
                                 let href = item.href;
-                                let label = t(item.label || '', locale);
+                                let label = item.i18nKey ? t(item.i18nKey || '', locale) : '';
                                 if (item.slug) {
-                                    // item.slug から先頭のロケールを除いたパスを取得する
-                                    const rawBaseSlug = 
-                                        item.slug.startsWith(`/${locale}/`) 
-                                            ? item.slug.slice(locale.length + 2) 
-                                            : item.slug;
-                                    const page = slugMap[rawBaseSlug];
+                                    const page = slugMap[removeTrailingSlash(item.slug)];
                                     if (page) {
-                                        href = getRoute(page.id);
-                                        if (!item.label) {
+                                        href = getRoute(page.id, wikiBaseUrl);
+                                        if (!item.i18nKey) {
                                             label = page.data.title;
                                         }
                                     }
-                                } else if (href && !/^(https?:\/\/|mailto:|tel:|#)/.test(href)) {
+                                } else if (href && !item.external) {
                                     // 相対パスの場合
                                     href = 
                                         href === '/' 
-                                            ? (nPrefixBaseUrl || '/') 
-                                            : `${nPrefixBaseUrl}${href}`;
+                                            ? (localeBaseUrl || '/') 
+                                            : `${localeBaseUrl}${href}`;
                                 }
                                 if (!href || !label) {
                                     // href または label が不足している場合はスキップ
@@ -199,8 +145,46 @@ const renderedCategories = new Set<string>();
                         </div>
                     </section>
                 );
+            } else if (section.category) {
+                // カテゴリ指定あり、アイテム指定なしの場合
+                // 合致するカテゴリのページを収集
+                const categoryPages = byCategory[section.category] || [];
+
+                if (categoryPages.length === 0) {
+                    return null;
+                }
+                renderedCategories.add(section.category);
+                
+                // ソート
+                const sorted = [...categoryPages].sort((a, b) => {
+                    return sorters[section.autoSort ?? 'title'](a, b);
+                });
+
+                // レンダリング
+                return (
+                    <section class="sidebar-section">
+                        <button class="sidebar-section-title sidebar-toggle" data-storage-key={storageKey} aria-expanded={defaultCollapsed ? "false" : "true"}>
+                            {sectionTitle && <i class={`${section.icon} fa-fw`} />}
+                            {sectionTitle}
+                            <i class="fa-solid fa-chevron-down sidebar-chevron" />
+                        </button>
+                        <div class={`sidebar-nav sidebar-collapsible${defaultCollapsed ? ' collapsed' : ''}`}>
+                            {
+                                sorted.map(page => {
+                                    return (
+                                        <a href={getRoute(page.id, wikiBaseUrl)} class={isCurrentPageId(page.id) ? 'current' : ''}>
+                                            <i class="fa-regular fa-file-lines fa-fw" />
+                                            {page.data.title}
+                                        </a>
+                                    )
+                                })
+                            }
+                        </div>
+                    </section>
+                );
+            } else {
+                return null;
             }
-            return null;
         })}
 
         <!-- 未知のカテゴリを自動追加 -->
@@ -223,7 +207,7 @@ const renderedCategories = new Set<string>();
                     <div class="sidebar-nav sidebar-collapsible">
                         {sorted.map((page) => {
                             return (
-                                <a href={getRoute(page.id)} class={isCurrentPageId(page.id) ? 'current' : ''}>
+                                <a href={getRoute(page.id, wikiBaseUrl)} class={isCurrentPageId(page.id) ? 'current' : ''}>
                                     <i class="fa-regular fa-file-lines fa-fw" />
                                     {page.data.title}
                                 </a>
@@ -235,33 +219,3 @@ const renderedCategories = new Set<string>();
         })}
     </nav>
 </aside>
-<script>
-import { getPreference, savePreference } from "@scripts/storage";
-
-    document.querySelectorAll<HTMLButtonElement>('.sidebar-toggle').forEach(button => {
-        // data-storage-key 属性からキーを取得
-        const key = button.dataset.storageKey;
-        if (!key) return;
-        const nav = button.nextElementSibling as HTMLElement | null;
-        if (!nav) return;
-
-        // ローカルストレージから保存された状態を読み込み
-        const saved  = getPreference(key);
-        if (saved !== null) {
-            const isCollapsed = saved === 'true';
-            button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-            nav.classList.toggle('collapsed', isCollapsed);
-        }
-
-        // クリック時に状態を切り替えてローカルストレージに保存
-        button.addEventListener('click', () => {
-            const isExpanded = 
-                button.getAttribute('aria-expanded') === 'true';
-            const nextCollapsed = isExpanded;
-            button.setAttribute('aria-expanded', nextCollapsed ? 'false' : 'true');
-            nav.classList.toggle('collapsed', nextCollapsed);
-            savePreference(key, nextCollapsed ? 'true' : 'false');
-        });
-    });
-</script>
-        

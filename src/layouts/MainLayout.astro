@@ -4,14 +4,16 @@
  * サイト全体のレイアウトを定義するファイル
  */
 import { t, defaultLocale, type Locale } from '@i18n/i18n.config';
+import { removeTrailingSlash } from '@scripts/utils';
 import Header from '@components/Header.astro';
 import Sidebar from '@components/Sidebar.astro';
 import MainContent from '@components/MainContent.astro';
 import Toc from '@components/Toc.astro';
+import MiniGraph from '@components/MiniGraph.astro';
 
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import '@styles/global.css';
 import '@styles/theme.css';
-import { normalize } from '@scripts/utils';
 
 interface Props {
     title: string;
@@ -20,8 +22,11 @@ interface Props {
     alternateLinks?: { locale: Locale; url: string }[];
     headings?: { depth: number; slug: string; text: string }[];
     tags?: string[];
+    category?: string;
     date?: Date;
     updated?: Date;
+    isFallbackContent?: boolean;
+    isWikiPage?: boolean;
 }
 
 const {
@@ -31,56 +36,64 @@ const {
     alternateLinks = [],
     headings = [],
     tags = [],
+    category,
     date,
     updated,
+    isFallbackContent = false,
+    isWikiPage = false,
 }: Props = Astro.props;
 
 // 基本URL設定
-const currentPath = normalize(Astro.url.pathname) || '/';
-const baseUrl = normalize(import.meta.env.BASE_URL);
-const nPrefixBaseUrl = normalize(`${baseUrl}/${locale}`);
-const canonicalUrl = new URL(currentPath, Astro.site);
+const currentPath = removeTrailingSlash(Astro.url.pathname) || '/';
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+const localeBaseUrl = `${baseUrl}/${locale}`;
+const wikiBaseUrl = `${localeBaseUrl}/wiki`;
+const canonicalUrl = Astro.url;
 
+const defaultAlternateLink = alternateLinks.find((link) => link.locale === defaultLocale);
 
-// 目次パネルの表示判定
-// - 見出しがある場合に表示
+// 目次パネルの表示判定：見出しがある場合に表示
 const hasTocPanel = headings.length > 0;
 
 // OGPでの表示名と説明文
 const siteTitle = t('site.title', locale) ?? t('site.title', defaultLocale);
+const pageTitle = `${title} | ${siteTitle}`;
 const siteDescription = t('site.description', locale) ?? t('site.description', defaultLocale);
+const pageDescription = description ?? siteDescription;
+const ogpImageUrl = new URL('/ogp.png', Astro.site).href;
 ---
 <!DOCTYPE html>
 <html lang={locale} data-lang={locale} data-default-locale={defaultLocale}>
     <head prefix="og: http://ogp.me/ns#">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{title} | {siteTitle}</title>
-        <meta name="description" content={description ?? siteDescription} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
         <meta name="generator" content="snsn-wiki" />
         <link rel="icon" href={`${baseUrl}/favicon.ico`} sizes="48x48" />
         <link rel="icon" href={`${baseUrl}/favicon.svg`} type="image/svg+xml" />
         <link rel="sitemap" href={`${baseUrl}/sitemap-index.xml`} />
         <link rel="canonical" href={canonicalUrl.href} />
+        {defaultAlternateLink && (
+            <link rel="alternate" hreflang="x-default" href={new URL(defaultAlternateLink.url, Astro.site).href} />
+        )}
         {
             alternateLinks.map((link) => (
-                <link rel="alternate" href={link.url} hreflang={link.locale} />
+                <link rel="alternate" hreflang={link.locale} href={new URL(link.url, Astro.site).href} />
             ))
         }
         <!-- OGP -->
-        <meta property="og:title" content={`${title} | ${siteTitle}`} />
-        <meta property="og:description" content={description ?? siteDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl.href} />
-        <meta property="og:image" content={new URL(`${baseUrl}/ogp.png`, Astro.site).href} />
+        <meta property="og:image" content={ogpImageUrl} />
         <meta property="og:site_name" content={siteTitle} />
-        <meta property="og:locale" content={t('og.locale', locale)} />
+        <meta property="og:locale" content={t('og.locale', locale) ?? t('og.locale', defaultLocale)} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${title} | ${siteTitle}`} />
-        <meta name="twitter:description" content={description ?? siteDescription} />
-        <meta name="twitter:image" content={new URL(`${baseUrl}/ogp.png`, Astro.site).href} />
-        <!-- Font Awesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogpImageUrl} />
         <!-- Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -109,14 +122,15 @@ const siteDescription = t('site.description', locale) ?? t('site.description', d
             <!-- ヘッダー -->
             <Header 
                 locale={locale} 
-                nPrefixBaseUrl={nPrefixBaseUrl} 
+                localeBaseUrl={localeBaseUrl} 
                 currentPath={currentPath}
             />
 
             <!-- サイドバー -->
             <Sidebar 
                 locale={locale} 
-                nPrefixBaseUrl={nPrefixBaseUrl} 
+                localeBaseUrl={localeBaseUrl} 
+                wikiBaseUrl={wikiBaseUrl}
                 currentPath={currentPath}
             />
 
@@ -124,17 +138,36 @@ const siteDescription = t('site.description', locale) ?? t('site.description', d
             <MainContent 
                 title={title} 
                 locale={locale}
-                nPrefixBaseUrl={nPrefixBaseUrl} 
+                localeBaseUrl={localeBaseUrl} 
                 currentPath={currentPath}
+                category={category}
                 tags={tags}
                 date={date}
                 updated={updated}
+                isFallbackContent={isFallbackContent}
+                isWikiPage={isWikiPage}
             >
                 <slot />
             </MainContent>
 
             <!-- 目次パネル -->
-            {hasTocPanel && <Toc />}
+            {!!isWikiPage && (
+            <aside class="toc-panel" id="toc-panel">
+                {hasTocPanel && 
+                    <Toc 
+                        headings={headings} 
+                        locale={locale} 
+                    />
+                }
+
+                <!-- ミニグラフ -->
+                <MiniGraph 
+                    locale={locale} 
+                    localeBaseUrl={localeBaseUrl} 
+                    currentPath={currentPath}
+                />
+            </aside>
+            )}
         </div>
         <script>
             import "@scripts/main"

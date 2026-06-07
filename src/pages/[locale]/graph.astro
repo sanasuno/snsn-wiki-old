@@ -1,0 +1,40 @@
+---
+/**
+ * src/pages/[lang]/graph.astro
+ */
+import { getRelativeLocaleUrl } from "astro:i18n";
+import MainLayout from "@layouts/MainLayout.astro";
+import GraphView from "@components/GraphView.astro";
+import { t, locales, type Locale } from "@i18n/i18n.config";
+import { removeTrailingSlash } from "@scripts/utils";
+
+interface Props {
+    locale: Locale;
+    localeBaseUrl: string;
+}
+
+export const getStaticPaths = () => {
+	return locales.map((locale) => ({
+		params: { locale },
+        props: { locale },
+	}));
+};
+
+const locale = Astro.props.locale;
+const localeBaseUrl = `${removeTrailingSlash(import.meta.env.BASE_URL)}/${locale}`;
+
+const alternateLinks = locales.map((loc) => ({
+	locale: loc,
+	url: getRelativeLocaleUrl(loc, '/graph'),
+}));
+---
+
+<MainLayout 
+    title={t("graph.page.title", locale)}
+    description={t("graph.description", locale)}
+    locale={locale} 
+    alternateLinks={alternateLinks}
+    isWikiPage={false}
+>
+    <GraphView locale={locale} localeBaseUrl={localeBaseUrl} />
+</MainLayout>

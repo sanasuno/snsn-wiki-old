@@ -1,0 +1,93 @@
+---
+/**
+ * pages/[lang]/wiki/[...slug].astro
+ * Wikiページの動的ルーティング用ページ
+ */
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { locales, defaultLocale, type Locale } from '@i18n/i18n.config';
+import { isLocale } from '@scripts/i18n';
+import MainLayout from '@layouts/MainLayout.astro';
+import type { GetStaticPathsResult } from 'astro';
+import { removeTrailingSlash } from '@scripts/utils';
+
+interface Props {
+    page: CollectionEntry<'wiki'>;
+    locale: Locale;
+    baseSlug: string;
+    isFallbackContent: boolean;
+}
+
+export async function getStaticPaths() {
+    const pages = await getCollection('wiki', (page) => !page.data.draft && !page.data.hidden);
+    
+    // baseSlug ごとに各言語のページ情報を集計
+    const pagesByBaseSlug: Record<string, Record<string, CollectionEntry<'wiki'>>> = {};
+    pages.forEach(page => {
+        const parts = page.id.split('/');
+        const rawLocale = parts[0];
+        if (!isLocale(rawLocale)) return;
+        const locale = rawLocale;
+        const baseSlug = parts.slice(1).join('/');
+        if (!pagesByBaseSlug[baseSlug]) {
+            pagesByBaseSlug[baseSlug] = {};
+        }
+        pagesByBaseSlug[baseSlug][locale] = page;
+    });
+
+    const paths: GetStaticPathsResult = [];
+
+    for (const baseSlug of Object.keys(pagesByBaseSlug)) {
+        const availableLocales = pagesByBaseSlug[baseSlug];
+
+        // すべてのロケールについてルートを生成
+        for (const locale of locales) {
+            // ルート直下は undefinedにする
+            const routeSlug = baseSlug === '' || baseSlug === 'index' ? undefined : baseSlug.replace(/\/index$/, '');
+            // この言語のページがあれば使用、なければdefaultLocaleにフォールバック
+            const isFallbackContent = !availableLocales[locale];
+            const pageToRender = availableLocales[locale] || availableLocales[defaultLocale] || Object.values(availableLocales)[0];
+
+            paths.push({
+                params: { locale, slug: routeSlug },
+                props: { 
+                    page: pageToRender,
+                    locale: locale,
+                    baseSlug,
+                    isFallbackContent,
+                }
+            })
+        }
+    }
+    return paths;
+}
+
+const { page, locale, baseSlug, isFallbackContent } = Astro.props;
+const { Content, headings } = await render(page);
+
+// すべてのサポート言語について代替URLを生成
+const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : '';
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+const normalizedSlug = baseSlug === '' || baseSlug === 'index'
+    ? ''
+    : baseSlug.replace(/\/index$/, '');
+const alternateLinks = locales.map(locale => ({
+  locale,
+  url: `${siteUrl}${baseUrl}/${locale}/wiki/${normalizedSlug}`
+}));
+---
+
+<MainLayout
+  title={page.data.title}
+  description={page.data.description || ''}
+  tags={page.data.tags || []}
+  category={page.data.category}
+  date={page.data.date}
+  updated={page.data.updated}
+  locale={locale} 
+  isFallbackContent={isFallbackContent}
+  isWikiPage={true}
+  alternateLinks={alternateLinks}
+  headings={headings}
+>
+  <Content />
+</MainLayout>

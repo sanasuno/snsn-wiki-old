@@ -1,0 +1,66 @@
+---
+/**
+ * @components/GraphView.astro
+ * グラフビューコンポーネント
+ */
+
+import { t, type Locale } from "@i18n/i18n.config";
+interface Props {
+    locale: Locale;
+    localeBaseUrl: string;
+}
+
+const { locale, localeBaseUrl }: Props = Astro.props;
+---
+<div class="graph-container" id="graph-container" data-locale={locale} data-locale-base-url={localeBaseUrl} data-err-fetch={t('graph.error.fetch', locale)} data-err-no-nodes={t('graph.error.noNodes', locale)}>
+    <canvas id="graph-canvas" />
+
+    <!-- ツールチップ -->
+    <div class="graph-tooltip" id="graph-tooltip">
+        <div class="graph-tooltip-title" id="graph-tooltip-title" />
+        <div class="graph-tooltip-tags" id="graph-tooltip-tags" />
+    </div>
+
+    <!-- コントロール -->
+     <div class="graph-controls">
+        <button class="graph-button" id="zoom-in" title={t('graph.zoomIn', locale)}>
+            <i class="fa-solid fa-plus" />
+        </button>
+        <button class="graph-button" id="zoom-out" title={t('graph.zoomOut', locale)}>
+            <i class="fa-solid fa-minus" />
+        </button>
+        <button class="graph-button" id="zoom-fit" title={t('graph.zoomFit', locale)}>
+            <i class="fa-solid fa-expand" />
+        </button>
+        <button class="graph-button" id="toggle-color" title={t('graph.toggleColor', locale)} style="margin-top: 8px;">
+            <i class="fa-solid fa-palette" />
+        </button>
+     </div>
+
+     <!-- ローディング表示 -->
+     <div class="graph-loading" id="graph-loading">
+        <div class="graph-loading-spinner">
+            <i class="fa-solid fa-spinner fa-spin" />
+            {t('graph.loading', locale)}
+        </div>
+     </div>
+
+     <!-- 凡例 -->
+     <div class="graph-legend" id="graph-legend">
+        <div>
+            <span class="legend-node-sample" id="legend-node-sample" />
+            {t('graph.legendPage', locale)}
+        </div>
+        <div>
+            <span class="legend-current" id="legend-current" />
+            {t('graph.legendCurrent', locale)}
+        </div>
+        <div>
+            <span class="legend-missing" id="legend-missing" />
+            {t('graph.legendMissing', locale)}
+        </div>
+    </div>
+</div>
+<script>
+  import "@scripts/graphpage"
+</script>
