@@ -146,10 +146,10 @@ const alternateLinks = locales.map((loc) => ({
     <div class="index-page">
         {/* 子カテゴリ一覧 */}
         {childCategories.length > 0 && (
-            <section class="subcategory-list">
+            <section class="category-subcategory-list">
                 <h2>{t('category.subcategories', locale)}</h2>
                 {childCategories.map(({ name, path, count }) => (
-                    <a href={`${localeBaseUrl}/category/${path}`} class="index-category">
+                    <a href={`${localeBaseUrl}/category/${path}`} class="index-page-category">
                         <i class="fa-solid fa-folder" />
                         {t(`category.${name}`, locale)}
                         <span>({count} {t('category.count.page', locale)})</span>
@@ -160,30 +160,35 @@ const alternateLinks = locales.map((loc) => ({
 
         {/* このカテゴリ直下のページ一覧 */}
         {directPages.length > 0 && (
-            <ul>
-                {directPages.map(page => (
-                    <li class="index-page-item">
-                        <a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
-                            <i class="fa-regular fa-file-lines" />
-                            {page.data.title}
-                        </a>
-                        {page.data.description && (
-                            <p class="index-description">
-                                {page.data.description}
-                            </p>
-                        )}
-                        {page.data.tags && (
-                            <div class="index-tags">
-                                {page.data.tags.map((tag: string) => (
-                                    <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="index-tag">
-                                        #{tag}
-                                    </a>
-                                ))}
+            <section class="category-directpage-list">
+                <h2>{t('category.pages', locale)}</h2>
+                <ul>
+                    {directPages.map(page => (
+                        <li class="index-page-item">
+                            <div class="index-page-item-title">
+                                <a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+                                    <i class="fa-regular fa-file-lines" />
+                                    {page.data.title}
+                                </a>
+                                {page.data.tags && (
+                                    <div class="index-tags">
+                                        {page.data.tags.map((tag: string) => (
+                                            <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="index-tag">
+                                                #{tag}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </li>
-                ))}
-            </ul>
+                            {page.data.description && (
+                                <p class="index-description">
+                                    {page.data.description}
+                                </p>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </section>
         )}
     </div>
 </MainLayout>

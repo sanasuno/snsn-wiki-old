@@ -14,6 +14,6 @@ export type NavItem = {
 export const headerNavigation: NavItem[] = [
     { path: '/', icon: 'fa-solid fa-house', i18nKey: 'nav.home' },
     { path: '/category', icon: 'fa-solid fa-folder', i18nKey: 'nav.category' },
-    { path: '/tags', icon: 'fa-solid fa-tags', i18nKey: 'nav.tags' },
+    { path: '/tag', icon: 'fa-solid fa-tags', i18nKey: 'nav.tags' },
     { path: '/graph', icon: 'fa-solid fa-diagram-project', i18nKey: 'nav.graph' }
 ];

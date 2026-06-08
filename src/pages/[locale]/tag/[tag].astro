@@ -1,0 +1,121 @@
+---
+/**
+ * src/pages/[locale]/category/[...category].astro
+ * カテゴリページ
+ */
+import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import MainLayout from '@layouts/MainLayout.astro';
+import { t, locales, type Locale } from '@i18n/i18n.config';
+import { getRoute, removeTrailingSlash } from '@scripts/utils';
+
+export async function getStaticPaths() {
+	const pages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
+    const tagMap: Record<string, typeof pages> = {};
+    for (const page of pages) {
+        for (const tag of page.data.tags || []) {
+            if (!tagMap[tag]) {
+                tagMap[tag] = [];
+            }
+            tagMap[tag].push(page);
+        }
+    }
+    const paths = [];
+    for (const locale of locales) {
+        for (const [tag, tagPages] of Object.entries(tagMap)) {
+            paths.push({
+                params: { locale, tag },
+                props: { locale, tag, tagPages },
+            });
+        }
+    }
+    return paths;
+}
+
+const locale = Astro.params.locale as Locale;
+const { tag, tagPages } = Astro.props;
+
+const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+const localeBaseUrl = `${baseUrl}/${locale}`;
+
+const filterTag = tag.split('/');
+const tagLabel = filterTag[filterTag.length - 1];
+
+// ロケール優先で重複排除
+const uniquePagesByBaseSlug: Record<string, typeof tagPages[0]> = {};
+for (const page of tagPages) {
+    const parts = page.id.split('/');
+    const pLocale = parts[0];
+    const baseSlug = parts.slice(1).join('/');
+    if (!uniquePagesByBaseSlug[baseSlug]) {
+        uniquePagesByBaseSlug[baseSlug] = page;
+    } else if (pLocale === locale) {
+        uniquePagesByBaseSlug[baseSlug] = page;
+    }
+}
+
+const sortedPages = Object.values(uniquePagesByBaseSlug).sort((a, b) =>
+    a.data.title.localeCompare(b.data.title)
+);
+
+const alternateLinks = locales.map((loc) => ({
+	locale: loc,
+	url: getRelativeLocaleUrl(loc, `/tag/${tag}`),
+}));
+---
+<MainLayout
+    title={t("tag.title", locale)}
+    description={`${t("tag.description", locale)} - ${t(`tag.${tagLabel}`, locale)}`}
+    locale={locale}
+    alternateLinks={alternateLinks}
+    showMeta={false}
+    isWikiPage={false}
+>
+	<div class="specialpage-title">
+        <div class="specialpage-back">
+            <a href={`${localeBaseUrl}/tag`}>
+                <i class="fa-solid fa-arrow-left" />
+                {t('tag.title', locale)}
+            </a>
+        </div>
+		<h1 class="index-title">
+			<i class="fa-solid fa-tags" />
+            <span>#{tag}</span>
+		</h1>
+		<div class="specialpage-description">
+			{sortedPages.length} {t('tag.count.page', locale)}
+		</div>
+	</div>
+
+    <div class="index-page">
+        {sortedPages.length > 0 && (
+            <ul>
+                {sortedPages.map(page => (
+                    <li class="index-page-item">
+                        <div class="index-page-item-title">
+                            <a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+                                <i class="fa-regular fa-file-lines" />
+                                {page.data.title}
+                            </a>
+                            {page.data.tags && (
+                                <div class="index-tags">
+                                    {page.data.tags.map((tag: string) => (
+                                        <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="index-tag">
+                                            #{tag}
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {page.data.description && (
+                            <p class="index-description">
+                                {page.data.description}
+                            </p>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        )}
+    </div>
+</MainLayout>

@@ -44,6 +44,15 @@ export const ja = {
   'category.more': 'もっと見る',
   'category.description': 'カテゴリ一覧',
   'category.subcategories': 'サブカテゴリ',
+  'category.pages': 'ページ',
+
+  // タグ
+  'tag.title': 'タグ一覧',
+  'tag.count': 'タグ',
+  'tag.count.page': 'ページ',
+  'tag.more': 'もっと見る',
+  'tag.description': 'タグ一覧',
+  'tag.empty': 'タグがありません',
 
   // ホーム
   'home.title': 'ホーム',

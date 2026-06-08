@@ -44,6 +44,15 @@ export const en = {
   'category.more': 'See more',
   'category.description': 'Category list',
   'category.subcategories': 'Subcategories',
+  'category.pages': 'Pages',
+
+  // Tags
+  'tag.title': 'Tag List',
+  'tag.count': 'tags',
+  'tag.count.page': 'pages',
+  'tag.more': 'See more',
+  'tag.description': 'Tag list',
+  'tag.empty': 'No tags',
 
   // Home
   'home.title': 'Home',

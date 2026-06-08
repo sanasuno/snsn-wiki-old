@@ -1,0 +1,133 @@
+---
+/**
+ * pages/[lang]/tag/index.astro
+ * タグ一覧ページ
+ */
+import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import MainLayout from '@layouts/MainLayout.astro';
+import { t, locales, defaultLocale, type Locale } from '@i18n/i18n.config';
+import { getRoute, removeTrailingSlash } from '@scripts/utils';
+import { getCategoryFromId } from '@scripts/category';
+
+
+export const getStaticPaths = () => {
+	return locales.map((locale) => ({
+		params: { locale },
+	}));
+};
+
+const locale = Astro.params.locale as Locale;
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+const localeBaseUrl = `${baseUrl}/${locale}`;
+const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
+
+const alternateLinks = locales.map((locale) => ({
+	locale: locale,
+	url: getRelativeLocaleUrl(locale, '/tag'),
+}));
+
+const uniquePagesByBaseSlug: Record<string, typeof allPages[0]> = {};
+for (const page of allPages) {
+	const parts = page.id.split('/');
+	const pLocale = parts[0];
+	const baseSlug = parts.slice(1).join('/');
+	if (!uniquePagesByBaseSlug[baseSlug]) {
+		uniquePagesByBaseSlug[baseSlug] = page;
+	} else {
+		if (pLocale === locale) uniquePagesByBaseSlug[baseSlug] = page;
+		else if (pLocale === defaultLocale && uniquePagesByBaseSlug[baseSlug].id.split('/')[0] !== locale) {
+			uniquePagesByBaseSlug[baseSlug] = page;
+		}
+	}
+}
+const pages = Object.values(uniquePagesByBaseSlug);
+
+const tagMap: Record<string, typeof pages> = {};
+for (const page of pages) {
+	const tags = page.data.tags || [];
+	for (const tag of tags) {
+		if (!tagMap[tag]) tagMap[tag] = [];
+		tagMap[tag].push(page);
+	}
+}
+
+const sortedTags = Object.entries(tagMap).sort(([a], [b]) => 
+	a[0].localeCompare(b[0], locale)
+);
+---
+
+<MainLayout 
+	title={t('tag.title', locale)} 
+	description={t('tag.description', locale)}
+	locale={locale}
+	alternateLinks={alternateLinks}
+	isWikiPage={false}
+	showMeta={false}
+>
+	<div class="specialpage-title">
+		<h1>
+			<i class="fa-solid fa-tags" />
+			<span data-i18n="tag.title">
+				{t('tag.title', locale)}
+			</span>
+		</h1>
+		<div class="specialpage-description">
+			{Object.keys(tagMap).length} {t('tag.count', locale)}, {pages.length} {t('tag.count.page', locale)}
+		</div>
+	</div>
+
+	<div class="index-page">
+		{sortedTags.map(([tag, tagPages]) => (
+			<section>
+                <h2>
+                    <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="tag-page-tagname">
+                        #{tag}
+                        <span class="tag-page-taglength">
+                            {tagPages.length}
+                        </span>
+                    </a>
+                </h2>
+				<ul class="index-list">
+					{tagPages.slice(0, 5).map(page => (
+						<li class="index-page-item">
+                            <div class="index-page-item-title">
+                                <a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+                                    <i class="fa-regular fa-file-lines" />
+                                    {page.data.title}
+                                </a>
+                                {page.data.tags && (
+                                    <div class="index-tags">
+                                        {page.data.tags.map((tag: string) => (
+                                            <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="index-tag">
+                                                #{tag}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {page.data.description && (
+                                <p class="index-description">
+                                    {page.data.description}
+                                </p>
+                            )}
+						</li>
+					))}
+					{tagPages.length > 5 && (
+						<li>
+							<a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="index-more">
+								{t('tag.more', locale)} {tagPages.length - 5} {t('tag.count.page', locale)}
+							</a>
+						</li>
+					)}
+				</ul>
+			</section>
+		))}
+
+        {sortedTags.length === 0 && (
+            <div class="index-page-empty">
+                {t('tag.empty', locale)}
+            </div>
+        )}
+	</div>
+</MainLayout>

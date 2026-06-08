@@ -1165,7 +1165,7 @@ body {
     gap: 24px;
 }
 
-.index-category {
+.index-page-category {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -1174,6 +1174,12 @@ body {
     color: var(--color-accent) !important;
     text-decoration: none !important;
     margin-bottom: 10px;
+}
+
+.index-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .index-page ul{
@@ -1195,6 +1201,13 @@ body {
     display: flex-start;
     flex-direction: column;
     justify-content: space-between;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.index-page-item-title {
+    display: flex;
+    flex-direction: row;
     align-items: baseline;
     gap: 4px;
 }
@@ -1245,16 +1258,39 @@ body {
 }
 
 /* -------- カテゴリ一覧ページ -------- */
-.subcategory-list {
+.category-subcategory-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     border-bottom: 1px solid var(--color-border);
     padding-bottom: 20px;
-    margin-bottom: 20px;
 }
 
-.subcategory-list h2{
+.category-subcategory-list h2 {
     margin: 0;
     border: none;
+}
+
+.category-directpage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-directpage-list h2 {
+    margin: 0;
+    border: none;
+}
+
+/* -------- タグ一覧ページ -------- */
+.tag-page-tagname {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+.tag-page-taglength {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    margin-left: 8px;
 }
