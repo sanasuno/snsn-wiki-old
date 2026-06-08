@@ -1,0 +1,17 @@
+---
+/**
+ * src/pages/404.astro
+ */
+
+import { locales, defaultLocale } from "@i18n/i18n.config";
+import { removeTrailingSlash } from "@scripts/utils";
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+---
+<script is:inline define:vars={{ locales, defaultLocale, baseUrl }}>
+
+    // パスから言語を判定してリダイレクトする
+    const baseSegments = baseUrl.split('/').filter(Boolean).length;
+    const locale = window.location.pathname.split('/').filter(Boolean)[baseSegments];
+    const targetLocale = locales.includes(locale) ? locale: defaultLocale;
+    window.location.href = `${baseUrl}/${targetLocale}/404`;
+</script>

@@ -17,7 +17,7 @@
     /* カラーパレット */
     /* 背景 */
     --color-bg: #ffffff;
-    --color-bg-hover: #f0f0f0;
+    --color-bg-hover: #e0e0e0;
     --color-bg-accent: #c8e6c9;
     --color-bg-accent-hover: #a5d6a7;
     --color-bg-secondary: #f5f5f5;
@@ -34,9 +34,9 @@
     --color-accent-hover: #066a3d;
     --color-accent-active: #04522b;
     /* リンク */
-    --color-link: #4f46e5;
-    --color-link-hover: #43338c;
-    --color-link-visited: #7c3aed;
+    --color-link: #1967d2;
+    --color-link-hover: #155bc3;
+    --color-link-visited: #6a5acd;
     --color-wikilink: #08824f;
     --color-wikilink-missing: #dc2626;
 
@@ -57,7 +57,7 @@
 :root[data-theme="dark"] {
     /* 背景 */
     --color-bg: #1a1a1a;
-    --color-bg-hover: #2a2a2a;
+    --color-bg-hover: #3a3a3a;
     --color-bg-accent: #b8d6b9;
     --color-bg-accent-hover: #95c497;
     --color-bg-secondary: #2a2a2a;
@@ -75,9 +75,9 @@
     --color-accent-hover: #066a3d;
     --color-accent-active: #04522b;
     /* リンク */
-    --color-link: #4863ea;
-    --color-link-hover: #6a75f0;
-    --color-link-visited: #6a5acd;
+    --color-link: #6f84eb;
+    --color-link-hover: #8a9af2;
+    --color-link-visited: #8a9af2;
     --color-wikilink: #08824f;
     --color-wikilink-missing: #dc2626;
 }

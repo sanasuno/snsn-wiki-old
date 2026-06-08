@@ -37,7 +37,13 @@ export const en = {
   'sidebar.sampleAuto': 'Sample (Auto)',
 
   // Category
+  'category.title': 'Category List',
   'category.sample': 'Sample',
+  'category.count': 'categories',
+  'category.count.page': 'pages',
+  'category.more': 'See more',
+  'category.description': 'Category list',
+  'category.subcategories': 'Subcategories',
 
   // Home
   'home.title': 'Home',
@@ -66,8 +72,8 @@ export const en = {
   'graph.openFull':    'Open full graph',
   'graph.zoomIn':      'Zoom in',
   'graph.zoomOut':     'Zoom out',
-  'graph.fit':         'Fit view',
-  'graph.colorToggle': 'Toggle tag colors',
+  'graph.zoomFit':     'Fit view',
+  'graph.toggleColor': 'Toggle tag colors',
   'graph.legendPage':  'Page',
   'graph.legendCurrent': 'Current page',
   'graph.legendMissing': 'Missing page',

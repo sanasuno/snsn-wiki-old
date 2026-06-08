@@ -25,6 +25,7 @@ const filtered = headings.filter(h => h.depth >= 2 && h.depth <= 4);
 {filtered.length > 0 && (
     <nav aria-label={t('toc.title', locale)}>
         <div class="toc-title">
+            <i class="fa-solid fa-list-ul" />
             {t('toc.title', locale)}
         </div>
         <ol class="toc-nav">

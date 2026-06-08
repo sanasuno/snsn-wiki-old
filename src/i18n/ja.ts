@@ -37,7 +37,13 @@ export const ja = {
   'sidebar.sampleAuto': 'サンプル（自動）',
 
   // カテゴリ
+  'category.title': 'カテゴリ一覧',
   'category.sample': 'サンプル',
+  'category.count': 'カテゴリ',
+  'category.count.page': 'ページ',
+  'category.more': 'もっと見る',
+  'category.description': 'カテゴリ一覧',
+  'category.subcategories': 'サブカテゴリ',
 
   // ホーム
   'home.title': 'ホーム',
@@ -66,8 +72,8 @@ export const ja = {
   'graph.openFull':    '全体グラフを開く',
   'graph.zoomIn':      'ズームイン',
   'graph.zoomOut':     'ズームアウト',
-  'graph.fit':         '全体表示',
-  'graph.colorToggle': 'タグ色分け切替',
+  'graph.zoomFit':     '全体表示',
+  'graph.toggleColor': 'タグ色分け切替',
   'graph.legendPage':  'ページ',
   'graph.legendCurrent': '現在のページ',
   'graph.legendMissing': '未作成ページ',

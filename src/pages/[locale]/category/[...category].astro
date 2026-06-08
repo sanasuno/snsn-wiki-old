@@ -1,0 +1,189 @@
+---
+/**
+ * src/pages/[locale]/category/[...category].astro
+ * カテゴリページ
+ */
+import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import MainLayout from '@layouts/MainLayout.astro';
+import { t, locales, type Locale } from '@i18n/i18n.config';
+import { getRoute, removeTrailingSlash } from '@scripts/utils';
+import { getCategoryFromId, matchCategory } from '@scripts/category';
+
+export async function getStaticPaths() {
+	const pages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
+	const categoryPathSet = new Set<string>();
+	for (const page of pages) {
+        const categories = getCategoryFromId(page.id);
+        for (let i = 1; i <= categories.length; i++) {
+            categoryPathSet.add(categories.slice(0, i).join('/'));
+        }
+	}
+	
+	const paths = [];
+	for (const locale of locales) {
+		for (const categoryPath of categoryPathSet) {
+			paths.push({
+				params: { locale, category: categoryPath },
+                props: { categoryPath },
+			});
+		}
+	}
+	
+	return paths;
+}
+
+const locale = Astro.params.locale as Locale;
+const { categoryPath } = Astro.props as { categoryPath: string };
+
+const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+const localeBaseUrl = `${baseUrl}/${locale}`;
+
+const filterCategory = categoryPath.split('/');
+const categoryLabel = filterCategory[filterCategory.length - 1];
+
+// filterCategory に前方一致するページをすべて取得（サブカテゴリ含む）
+const categoryPages = allPages.filter(page => 
+    matchCategory(getCategoryFromId(page.id), filterCategory)
+);
+
+// ロケール優先で重複排除
+const uniquePagesByBaseSlug: Record<string, typeof categoryPages[0]> = {};
+for (const page of categoryPages) {
+    const parts = page.id.split('/');
+    const pLocale = parts[0];
+    const baseSlug = parts.slice(1).join('/');
+    if (!uniquePagesByBaseSlug[baseSlug]) {
+        uniquePagesByBaseSlug[baseSlug] = page;
+    } else if (pLocale === locale) {
+        uniquePagesByBaseSlug[baseSlug] = page;
+    }
+}
+
+const sortedPages = Object.values(uniquePagesByBaseSlug).sort((a, b) =>
+    a.data.title.localeCompare(b.data.title)
+);
+
+// 直下の子カテゴリを抽出する
+// 例: filterCategory = ['tech'] のとき
+//   getCategoryFromId が ['tech', 'astro', ...] のページから 'astro' を取り出す
+const childCategorySet = new Set<string>();
+for (const page of Object.values(uniquePagesByBaseSlug)) {
+    const cats = getCategoryFromId(page.id);
+    // filterCategory より1階層深いセグメントが存在する場合、それが直下の子カテゴリ
+    if (cats.length > filterCategory.length && matchCategory(cats, filterCategory)) {
+        childCategorySet.add(cats[filterCategory.length]);
+    }
+}
+
+// 子カテゴリごとのページ数を集計
+const childCategories = Array.from(childCategorySet).sort().map((childCat) => {
+    const childPath = [...filterCategory, childCat].join('/');
+    const childFilter = childPath.split('/');
+    const count = Object.values(uniquePagesByBaseSlug).filter(page =>
+        matchCategory(getCategoryFromId(page.id), childFilter)
+    ).length;
+    return { name: childCat, path: childPath, count };
+});
+
+// このカテゴリ直下（サブカテゴリに属さない）のページのみ
+const directPages = sortedPages.filter(page => {
+    const cats = getCategoryFromId(page.id);
+    return cats.length === filterCategory.length;
+});
+
+const alternateLinks = locales.map((loc) => ({
+	locale: loc,
+	url: getRelativeLocaleUrl(loc, `/category/${categoryPath}`),
+}));
+---
+<MainLayout
+    title={t("category.title", locale)}
+    description={`${t("category.description", locale)} - ${t(`category.${categoryLabel}`, locale)}`}
+    locale={locale}
+    alternateLinks={alternateLinks}
+    showMeta={false}
+    isWikiPage={false}
+>
+	<div class="specialpage-title">
+        <div class="specialpage-back">
+            {filterCategory.length > 1
+                ? (
+                    <a href={`${localeBaseUrl}/category/${filterCategory.slice(0, -1).join('/')}`}>
+                        <i class="fa-solid fa-arrow-left" />
+                        {t(`category.${filterCategory[filterCategory.length - 2]}`, locale)}
+                    </a>
+                ) : (
+                    <a href={`${localeBaseUrl}/category`}>
+                        <i class="fa-solid fa-arrow-left" />
+                        {t('category.title', locale)}
+                    </a>
+                )
+            }
+        </div>
+		<h1 class="index-title">
+			<i class="fa-solid fa-folder" />
+            {filterCategory.map((cat, index) => {
+                const catPath = filterCategory.slice(0, index + 1).join('/');
+                const isLast = index === filterCategory.length - 1;
+                return (
+                    <>
+                        {index > 0 && <span class="category-separator"> / </span>}
+                        {isLast
+                            ? <span>{t(`category.${cat}`, locale)}</span>
+                            : <a href={`${localeBaseUrl}/category/${catPath}`}>{t(`category.${cat}`, locale)}</a>
+                        }
+                    </>
+                );
+            })}
+		</h1>
+		<div class="specialpage-description">
+			{sortedPages.length} {t('category.count.page', locale)}
+		</div>
+	</div>
+
+    <div class="index-page">
+        {/* 子カテゴリ一覧 */}
+        {childCategories.length > 0 && (
+            <section class="subcategory-list">
+                <h2>{t('category.subcategories', locale)}</h2>
+                {childCategories.map(({ name, path, count }) => (
+                    <a href={`${localeBaseUrl}/category/${path}`} class="index-category">
+                        <i class="fa-solid fa-folder" />
+                        {t(`category.${name}`, locale)}
+                        <span>({count} {t('category.count.page', locale)})</span>
+                    </a>
+                ))}
+            </section>
+        )}
+
+        {/* このカテゴリ直下のページ一覧 */}
+        {directPages.length > 0 && (
+            <ul>
+                {directPages.map(page => (
+                    <li class="index-page-item">
+                        <a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+                            <i class="fa-regular fa-file-lines" />
+                            {page.data.title}
+                        </a>
+                        {page.data.description && (
+                            <p class="index-description">
+                                {page.data.description}
+                            </p>
+                        )}
+                        {page.data.tags && (
+                            <div class="index-tags">
+                                {page.data.tags.map((tag: string) => (
+                                    <a href={`${localeBaseUrl}/tag/${encodeURIComponent(tag)}`} class="index-tag">
+                                        #{tag}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        )}
+    </div>
+</MainLayout>

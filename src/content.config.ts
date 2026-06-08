@@ -12,7 +12,6 @@ const wiki = defineCollection({
         title: z.string(),
         description: z.string().optional(),
         aliases: z.array(z.string()).default([]),
-        category: z.string().optional(),
         tags: z.array(z.string()).default([]),
         order: z.number().default(0),
         date: z.coerce.date().optional(),

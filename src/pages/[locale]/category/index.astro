@@ -1,0 +1,110 @@
+---
+/**
+ * pages/[lang]/category/index.astro
+ * カテゴリ一覧ページ
+ */
+import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import MainLayout from '@layouts/MainLayout.astro';
+import { t, locales, defaultLocale, type Locale } from '@i18n/i18n.config';
+import { getRoute, removeTrailingSlash } from '@scripts/utils';
+import { getCategoryFromId } from '@scripts/category';
+
+
+export const getStaticPaths = () => {
+	return locales.map((locale) => ({
+		params: { locale },
+	}));
+};
+
+const locale = Astro.params.locale as Locale;
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+const localeBaseUrl = `${baseUrl}/${locale}`;
+const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
+
+const alternateLinks = locales.map((locale) => ({
+	locale: locale,
+	url: getRelativeLocaleUrl(locale, '/category'),
+}));
+
+const uniquePagesByBaseSlug: Record<string, typeof allPages[0]> = {};
+for (const page of allPages) {
+	const parts = page.id.split('/');
+	const pLocale = parts[0];
+	const baseSlug = parts.slice(1).join('/');
+	if (!uniquePagesByBaseSlug[baseSlug]) {
+		uniquePagesByBaseSlug[baseSlug] = page;
+	} else {
+		if (pLocale === locale) uniquePagesByBaseSlug[baseSlug] = page;
+		else if (pLocale === defaultLocale && uniquePagesByBaseSlug[baseSlug].id.split('/')[0] !== locale) {
+			uniquePagesByBaseSlug[baseSlug] = page;
+		}
+	}
+}
+const pages = Object.values(uniquePagesByBaseSlug);
+
+const categoryMap: Record<string, typeof pages> = {};
+for (const page of pages) {
+	const category = getCategoryFromId(page.id);
+	if (category.length > 0) {
+		const topCategory = category[0];
+		if (!categoryMap[topCategory]) categoryMap[topCategory] = [];
+		categoryMap[topCategory].push(page);
+	}
+}
+
+const sortedCategories = Object.entries(categoryMap).sort(([a], [b]) => 
+	a[0].localeCompare(b[0], locale)
+);
+
+---
+
+<MainLayout 
+	title={t('category.title', locale)} 
+	description={t('category.description', locale)}
+	locale={locale}
+	alternateLinks={alternateLinks}
+	isWikiPage={false}
+	showMeta={false}
+>
+	<div class="specialpage-title">
+		<h1>
+			<i class="fa-solid fa-folder" />
+			<span data-i18n="category.title">
+				{t('category.title', locale)}
+			</span>
+		</h1>
+		<div class="specialpage-description">
+			{Object.keys(categoryMap).length} {t('category.count', locale)}, {pages.length} {t('category.count.page', locale)}
+		</div>
+	</div>
+
+	<div class="index-page">
+		{sortedCategories.map(([cat, catPages]) => (
+			<section>
+				<a href={`${localeBaseUrl}/category/${encodeURIComponent(cat)}`} class="index-category">
+					<i class="fa-solid fa-folder" />
+					{t(`category.${cat}`, locale)}
+					<span>({catPages.length} {t('category.count.page', locale)})</span>
+				</a>
+				<ul>
+					{catPages.slice(0, 5).map(page => (
+						<li>
+							<a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+								<i class="fa-regular fa-file-lines" />
+								{page.data.title}
+							</a>
+						</li>
+					))}
+					{catPages.length > 5 && (
+						<li>
+							<a href={`${localeBaseUrl}/category/${encodeURIComponent(cat)}`} class="index-more">
+								{t('category.more', locale)} {catPages.length - 5} {t('category.count.page', locale)}
+							</a>
+						</li>
+					)}
+				</ul>
+			</section>
+		))}
+	</div>
+</MainLayout>

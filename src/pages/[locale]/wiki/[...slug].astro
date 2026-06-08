@@ -9,6 +9,7 @@ import { isLocale } from '@scripts/i18n';
 import MainLayout from '@layouts/MainLayout.astro';
 import type { GetStaticPathsResult } from 'astro';
 import { removeTrailingSlash } from '@scripts/utils';
+import { getCategoryFromId } from '@scripts/category';
 
 interface Props {
     page: CollectionEntry<'wiki'>;
@@ -80,7 +81,7 @@ const alternateLinks = locales.map(locale => ({
   title={page.data.title}
   description={page.data.description || ''}
   tags={page.data.tags || []}
-  category={page.data.category}
+  categories={getCategoryFromId(page.id) || []}
   date={page.data.date}
   updated={page.data.updated}
   locale={locale} 

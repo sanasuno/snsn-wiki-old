@@ -12,6 +12,7 @@ import { getCollection } from "astro:content";
 import { t, defaultLocale, type Locale } from "@i18n/i18n.config";
 import { sidebarNavigation, autoAddUnknownCategories } from "@layouts/sidebar.config";
 import { removeTrailingSlash, getRoute, getBaseSlug } from "@scripts/utils";
+import { getCategoryFromId } from "@scripts/category";
 
 interface Props { 
     locale: Locale;
@@ -66,11 +67,12 @@ for (const page of allPages) {
 const pages = Object.values(uniquePagesByBaseSlug);
 const byCategory: Record<string, typeof pages> = {};
 for (const page of pages) {
-    const category: string = page.data.category || '';
-    if (!byCategory[category]) {
-        byCategory[category] = [];
+    const category: string[] = getCategoryFromId(page.id) || [];
+    const categoryKey = category.join('/');
+    if (!byCategory[categoryKey]) {
+        byCategory[categoryKey] = [];
     }
-    byCategory[category].push(page);
+    byCategory[categoryKey].push(page);
 }
 
 
