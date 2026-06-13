@@ -57,8 +57,8 @@ const allTags = Object.entries(tagCountMap)
 	.sort(([a], [b]) => a.localeCompare(b));
 ---
 <MainLayout
-    title={t('pages.title')}
-    description={t('pages.description')}
+    title={t('pages.title', locale)}
+    description={t('pages.description', locale)}
     locale={locale}
     alternateLinks={alternateLinks}
     isWikiPage={false}

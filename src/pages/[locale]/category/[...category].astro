@@ -100,7 +100,7 @@ const alternateLinks = locales.map((loc) => ({
 ---
 <MainLayout
     title={t("category.title", locale)}
-    description={`${t("category.description", locale)} - ${t(`category.${categoryLabel}`, locale)}`}
+    description={`${t("category.description", locale)} - ${t(`category.${categoryLabel}`, locale) ?? categoryLabel}`}
     locale={locale}
     alternateLinks={alternateLinks}
     showMeta={false}

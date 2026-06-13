@@ -238,8 +238,7 @@ async function initMiniGraph() {
     const rc = canvas.getBoundingClientRect();
     const n  = hit(e.clientX-rc.left, e.clientY-rc.top);
     if (n && n.exists !== false && n.id !== baseSlug) {
-      const langPrefix = locale === defaultLocale ? '' : `/${locale}`;
-      window.location.href = `${localeBaseUrl}/wiki${langPrefix}/${n.id}`;
+      window.location.href = `${localeBaseUrl}/wiki/${n.id}`;
     }
   });
 

@@ -49,8 +49,8 @@ const sortedPages = pages.sort((a, b) => {
 });
 ---
 <MainLayout
-    title={t('recent.title')}
-    description={t('recent.description')}
+    title={t('recent.title', locale)}
+    description={t('recent.description', locale)}
     locale={locale}
     alternateLinks={alternateLinks}
     isWikiPage={false}
@@ -60,7 +60,7 @@ const sortedPages = pages.sort((a, b) => {
         <h1>
             <i class="fa-solid fa-clock-rotate-left" />
             <span data-i18n="recent.title">
-                {t('recent.title')}
+                {t('recent.title', locale)}
             </span>
         </h1>
         <span class="specialpage-description">
