@@ -15,7 +15,7 @@
  * @param {boolean} showMeta メタ情報を表示するかどうか
  */
 
-import { t, type Locale, formatDate } from '@i18n/i18n.config';
+import { t, locales, type Locale, formatDate } from '@i18n/i18n.config';
 interface Props {
     title: string;
     localeBaseUrl: string;
@@ -121,7 +121,7 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                                                 : <>
                                                     <!-- カテゴリページへのリンク -->
                                                     <i class="fa-solid fa-folder" />
-                                                    <a href={`${localeBaseUrl}/category${crumb.href}`}>{t(`category.${crumb.label}`, locale)}</a>
+                                                    <a href={`${localeBaseUrl}/category${crumb.href}`}>{locales.includes(crumb.label as Locale) ? t(`category.${crumb.label}`, locale) : crumb.label}</a>
                                                 </>
                                     }
                                 </li>
@@ -143,7 +143,7 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                     <div class="page-category">
                         <a href={`${localeBaseUrl}/category/${leafCategory.path}`}>
                             <i class="fa-regular fa-folder" />
-                            {t(`category.${leafCategory.name}`, locale)}
+                            {locales.includes(leafCategory.name as Locale) ? t(`category.${leafCategory.name}`, locale) : leafCategory.name}
                         </a>
                     </div>
                 )}
