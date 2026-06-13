@@ -107,7 +107,7 @@ const catCount = Object.keys(categoryMap).length;
 				</h2>
 				<div class="home-recent-updates">
 					{recentPages.map((page) => (
-						<a href={`${localeBaseUrl}/wiki/${getRoute(page.id, baseUrl)}`} class="home-recent-item">
+						<a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="home-recent-item">
 							<div class="home-recent-item-title">
 								{page.data.title}
 							</div>
