@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parse as parseYaml } from 'yaml';
 
 // ----------------------------------------
 // 型定義
@@ -57,14 +58,23 @@ interface FrontMatter {
 function parseFrontMatter(raw: string): { meta: FrontMatter; body: string } {
     // Windows 改行正規化
     const content = raw.replace(/\r\n/g, '\n');
+    // fronmatterブロックを検出
     const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
     if (!match) return { meta: {}, body: content };
 
     const yamlBlock = match[1];
     const body = match[2] ?? '';
 
-    // 簡易 YAML パーサー（キー: 値 形式のみ対応）
-    const meta: FrontMatter = {};
+    // YAML パース
+    let meta: FrontMatter = {};
+    try {
+        const parsed = parseYaml(yamlBlock);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            meta = parsed as FrontMatter;
+        }
+    } catch (e) {
+        console.warn('YAML parse error:', e);
+    }
     for (const line of yamlBlock.split('\n')) {
         const kv = line.match(/^(\w+):\s*(.+)$/);
         if (!kv) continue;

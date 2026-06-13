@@ -7,18 +7,20 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && tsx src/scripts/buildSearchIndex.ts",
+    "prebuild": "tsx src/scripts/buildSearchIndex.ts",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/mdx": "^5.0.6",
-    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/mdx": "^6.0.3",
+    "@astrojs/sitemap": "^3.7.3",
     "@fortawesome/fontawesome-free": "^7.2.0",
-    "astro": "^6.3.3",
+    "astro": "^6.4.6",
     "d3": "^7.9.0",
     "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
