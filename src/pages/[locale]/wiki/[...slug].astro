@@ -70,7 +70,7 @@ const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : '';
 const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
 const normalizedSlug = baseSlug === '' || baseSlug === 'index'
     ? '/'
-    : `/${baseSlug.replace(/\/index$/, '')}/`;
+    : `/${baseSlug.replace(/\/index$/, '')}`;
 const alternateLinks = locales.map(locale => ({
   locale,
   url: `${siteUrl}${baseUrl}/${locale}/wiki${normalizedSlug}`

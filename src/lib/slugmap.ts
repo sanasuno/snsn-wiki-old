@@ -56,10 +56,15 @@ export function toRealSlug(fullSlug: string): string {
     return parts.slice(1).join('/');
 }
 
-// キャッシュ
-let _cache: SlugMap | null = null;
-let _slugsCache: Set<string> | null = null;
-const CACHE_PATH = path.resolve(process.cwd(), '.node_modules/.cache/snsn-wiki-slugmap.json');
+/**
+ * テキストから実スラッグに解決する
+ * @param text テキスト
+ * @returns 実スラッグ
+ */
+export function resolveSlug(text: string, map: SlugMap): string {
+    const key = slugify(text);
+    return map[key] || text;
+}
 
 /**
  * Wikiファイルをスキャンしてスラッグマップを生成する
@@ -112,9 +117,11 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
                             }
                         }
                     }
+                    // draft と hidden の判定
                     isDraft = parsed.frontmatter.draft === true;
                     isHidden = parsed.frontmatter.hidden === true;
                 }
+                // publishOnly が true の場合、draft または hidden のページは除外
                 if (!publishOnly || (!isDraft && !isHidden)) {
                     slugs.add(baseSlug);
                 }
@@ -126,13 +133,18 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
     return map;
 }
 
-/**
- * ビルド時に Content Collections を使わずに
- * src/content/wiki/ を直接スキャンしてスラッグマップを構築
- * @returns スラッグマップ
- */
-export function buildSlugMapSync(): SlugMap {
-    // キャッシュがあれば利用
+interface SlugmapCache {
+    map: SlugMap;
+    slugs: Set<string>;
+}
+
+// キャッシュ
+let _cache: SlugmapCache | null = null;
+let _slugsCache: Set<string> | null = null;
+const CACHE_PATH = path.resolve(process.cwd(), '.node_modules/.cache/snsn-wiki-slugmap.json');
+
+
+function buildCache(): SlugmapCache {
     if (_cache) {
         return _cache;
     }
@@ -141,33 +153,45 @@ export function buildSlugMapSync(): SlugMap {
     const wikiDir = path.resolve(process.cwd(), 'src/content/wiki');
     const map: SlugMap = {};
     const slugs = new Set<string>();
+
     if (!fs.existsSync(wikiDir)) {
-        return map;
+        _cache = { map, slugs };
+        return _cache;
     }
-    // .md .mdx ファイルを再帰スキャン
-    const wikiMap = scanWikiFiles(wikiDir, slugs);
-    Object.assign(map, wikiMap);
+
+    const locales = fs.readdirSync(wikiDir, { withFileTypes: true })
+        .filter(dir => dir.isDirectory())
+        .map(dir => dir.name);
     
-    // キャッシュ保存
+    for (const locale of locales) {
+        const localeDir = path.join(wikiDir, locale);
+        const localeSlugs = new Set<string>();
+        const localeMap = scanWikiFiles(localeDir, localeSlugs, locale, false);
+        Object.assign(map, localeMap);
+        for (const slug of localeSlugs) {
+            slugs.add(`${locale}/${slug}`);
+        }
+    }
     try {
         fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
         fs.writeFileSync(CACHE_PATH, JSON.stringify(map, null, 2));
     } catch (e) {
-        console.error('Failed to save slugmap cache:', e);
+        console.error('Failed to create cache directory:', e);
     }
-    _cache = map;
-    return map;
+
+    _cache = { map, slugs };
+    return _cache;
 }
 
 /**
- * テキストから実スラッグに解決する
- * @param text テキスト
- * @returns 実スラッグ
+ * ビルド時に Content Collections を使わずに
+ * src/content/wiki/ を直接スキャンしてスラッグマップを構築
+ * @returns スラッグマップ
  */
-export function resolveSlug(text: string, map: SlugMap): string {
-    const key = slugify(text);
-    return map[key] || text;
+export function buildSlugMapSync(): SlugMap {
+    return buildCache().map;
 }
+
 
 /**
  * 公開済みページ（draft: false かつ hidden: false のページ）の
@@ -175,32 +199,5 @@ export function resolveSlug(text: string, map: SlugMap): string {
  * @returns 実際の物理スラッグ集合
  */
 export function buildPublishedSlugs(): Set<string> {
-    // キャッシュがあれば利用
-    if (_slugsCache) {
-        return _slugsCache;
-    }
-    
-    const wikiDir = path.resolve(process.cwd(), 'src/content/wiki');
-    // 公開済みページを抽出
-    const publishedSlugs = new Set<string>();
-    // ディレクトリが存在しない場合は空のSetを返す
-    if (!fs.existsSync(wikiDir)) {
-        return publishedSlugs;
-    }
-    // ロケールディレクトリを直接列挙してプレフィックス付きでスキャン
-    const locales = fs.readdirSync(wikiDir, { withFileTypes: true })
-        .filter(e => e.isDirectory())
-        .map(e => e.name);
-
-    for (const locale of locales) {
-        const localeDir = path.join(wikiDir, locale);
-        const localeSlugs = new Set<string>();
-        scanWikiFiles(localeDir, localeSlugs, locale, true);
-        // localeSlugs には "my-page" が入る → "locale/my-page" に変換して追加
-        for (const slug of localeSlugs) {
-            publishedSlugs.add(`${locale}/${slug}`);
-        }
-    }
-    _slugsCache = publishedSlugs;
-    return publishedSlugs;
+    return buildCache().slugs;
 }

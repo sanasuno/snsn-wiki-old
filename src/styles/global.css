@@ -23,6 +23,10 @@ body {
     transition: background var(--transition), color var(--transition);
 }
 
+[hidden] {
+    display: none !important;
+}
+
 /* -------- レイアウト -------- */
 .layout {
     display: grid;

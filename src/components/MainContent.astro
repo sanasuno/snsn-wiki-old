@@ -16,6 +16,7 @@
  */
 
 import { t, locales, translations,type Locale, formatDate } from '@i18n/i18n.config';
+import { undefined } from 'astro:schema';
 interface Props {
     title: string;
     localeBaseUrl: string;
@@ -42,6 +43,7 @@ const leafCategory = categories && categories.length > 0
 type Crumb = {
     label: string;
     href: string;
+    categorySegment?: string;
 }
 
 /**
@@ -71,12 +73,10 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
     segments.forEach((segment, index) => {
         accumulated += `/${segment}`;
         const isLast = index === segments.length - 1;
-        const label = isLast && title 
-            ? title
-            : segment;
         crumbs.push({
-            label,
-            href: accumulated
+            label: isLast && title ? title : segment,
+            href: accumulated,
+            categorySegment: !isLast ? segment : '',
         });
     });
     return crumbs;
@@ -122,7 +122,9 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                                                     <!-- カテゴリページへのリンク -->
                                                     <i class="fa-solid fa-folder" />
                                                     <a href={`${localeBaseUrl}/category${crumb.href}`}>
-                                                        {t(`category.${crumb.label}`, locale) !== crumb.label ? t(`category.${crumb.label}`, locale) : crumb.label}
+                                                        {t(`category.${crumb.label}`, locale) !== `category.${crumb.label}` 
+                                                            ? t(`category.${crumb.label}`, locale) 
+                                                            : crumb.label}
                                                     </a>
                                                 </>
                                     }

@@ -31,6 +31,7 @@ const alternateLinks = locales.map((locale) => ({
 const uniquePages = getUniquePagesByLocale(allPages, locale);
 const pages: typeof allPages = Object.values(uniquePages);
 
+// 最近更新されたページを取得
 const recentPages = [...pages]
 	.sort((a, b) => {
 		const aDate = a.data.updated || a.data.date || new Date(0);
@@ -39,6 +40,7 @@ const recentPages = [...pages]
 	})
 	.slice(0, 10);
 
+// タグ別ページ数をカウント
 const tagCount: Record<string, number> = {};
 for (const page of pages) {
 	const tags = page.data.tags || [];
@@ -50,6 +52,7 @@ const topTags = Object.entries(tagCount)
 	.sort((a, b) => b[1] - a[1])
 	.slice(0, 10);
 
+// カテゴリ別ページ数をカウント
 const categoryMap: Record<string, typeof pages> = {};
 for (const page of pages) {
 	const category = getCategoryFromId(page.id);
@@ -71,6 +74,7 @@ const catCount = Object.keys(categoryMap).length;
 	showMeta={false}
 >
 	<div class="home-page">
+		<!-- ホームページヘッダー -->
 		<section class="home-header">
 			<h1>{t('site.title', locale)}</h1>
 			<p>{t('site.description', locale)}</p>
@@ -83,7 +87,7 @@ const catCount = Object.keys(categoryMap).length;
 					<i class="fa-solid fa-folder" />
 					{catCount} {t('home.counter.categories', locale)}
 				</a>
-				<a href={`${localeBaseUrl}/tags`}>
+				<a href={`${localeBaseUrl}/tag`}>
 					<i class="fa-solid fa-tags" />
 					{topTags.length} {t('home.counter.tags', locale)}
 				</a>
