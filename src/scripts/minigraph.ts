@@ -6,7 +6,8 @@
 
 import * as d3 from 'd3';
 import { defaultLocale, type Locale} from '@i18n/i18n.config';
-import { toBaseSlugFromPath } from './slugUtils';
+import { toBaseSlugFromPath, toRealSlugFromPath } from './slugUtils';
+import { makeColors, getIsDark } from './graphColors';
 
 
 const container = document.getElementById('mini-graph-container');
@@ -25,36 +26,6 @@ interface Node {
 
 const graphApiUrl = `${localeBaseUrl}/api/graph.json`;
 
-function toRealSlug(fullSlug: string): string {
-  // '/ja/wiki/sample/test' → 'sample/test'
-  const match = fullSlug.match(/\/wiki\/(.+)$/);
-  if (match) return match[1];
-  // wiki以外のパス（トップページ等）
-  const parts = fullSlug.split('/').filter(Boolean);
-  return parts.slice(1).join('/'); // locale を除く
-}
-
-function getIsDark() {
-  const t = document.documentElement.getAttribute('data-theme');
-  if (t === 'dark') return true;
-  if (t === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-// ダークモード対応のカラーパレット
-function makeColors() {
-  const dark = getIsDark();
-  return {
-    nodeCurrent:  '#f59e0b',
-    nodeNeighbor: dark ? '#4f46e5' : '#6366f1',
-    nodeMissing:  dark ? '#374151' : '#e5e7eb',
-    nodeStroke:   dark ? '#0f0f1a' : '#ffffff',
-    nodeStrokeMissing: dark ? '#4b5563' : '#9ca3af',
-    link:         dark ? '#2d2d4e' : '#e5e7eb',
-    text:         dark ? '#cbd5e1' : '#1f2937',
-    textMuted:    dark ? '#64748b' : '#9ca3af',
-  };
-}
 
 // メイン関数
 async function initMiniGraph() {

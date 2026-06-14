@@ -6,12 +6,11 @@
 import { getCollection } from 'astro:content';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MainLayout from '@layouts/MainLayout.astro';
-import { t, locales, defaultLocale, formatDate, type Locale } from '@i18n/i18n.config';
+import { t, locales, formatDate, type Locale } from '@i18n/i18n.config';
 import { getRoute, removeTrailingSlash } from '@scripts/utils';
-import { getCategoryFromId } from '@scripts/category';
 import { getUniquePagesByLocale } from '@scripts/pages';
 
-
+// ロケールごとの静的パスを生成
 export const getStaticPaths = () => {
 	return locales.map((locale) => ({
 		params: { locale },
@@ -29,9 +28,10 @@ const alternateLinks = locales.map((locale) => ({
 	url: getRelativeLocaleUrl(locale, '/tag'),
 }));
 
+// ロケールごとの重複を削除したページを取得
 const uniquePages = getUniquePagesByLocale(allPages, locale);
 const pages: typeof allPages = Object.values(uniquePages);
-
+// タグごとにページをグループ化
 const tagMap: Record<string, typeof pages> = {};
 for (const page of pages) {
 	const tags = page.data.tags || [];
@@ -40,7 +40,7 @@ for (const page of pages) {
 		tagMap[tag].push(page);
 	}
 }
-
+// タグをソート
 const sortedTags = Object.entries(tagMap).sort(([a], [b]) => 
 	a[0].localeCompare(b[0], locale)
 );
@@ -54,6 +54,7 @@ const sortedTags = Object.entries(tagMap).sort(([a], [b]) =>
 	isWikiPage={false}
 	showMeta={false}
 >
+	<!-- タイトルと説明 -->
 	<div class="specialpage-title">
 		<h1>
 			<i class="fa-solid fa-tags" />
@@ -66,6 +67,7 @@ const sortedTags = Object.entries(tagMap).sort(([a], [b]) =>
 		</div>
 	</div>
 
+	<!-- タグ一覧 -->
 	<div class="index-page">
 		{sortedTags.map(([tag, tagPages]) => {
             const updated = tagPages[0].data.updated || tagPages[0].data.date || new Date(0);
@@ -125,10 +127,11 @@ const sortedTags = Object.entries(tagMap).sort(([a], [b]) =>
 			)
 		})}
 
-        {sortedTags.length === 0 && (
-            <div class="index-page-empty">
-                {t('tag.empty', locale)}
-            </div>
-        )}
+		<!-- ページが存在しない場合 -->
+		{sortedTags.length === 0 && (
+			<div class="index-page-empty">
+				{t('tag.empty', locale)}
+			</div>
+		)}
 	</div>
 </MainLayout>

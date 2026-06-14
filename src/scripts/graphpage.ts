@@ -6,6 +6,7 @@
 import * as d3 from 'd3';
 import { type Locale, defaultLocale } from '@i18n/i18n.config';
 import { savePreference, getPreference } from '@scripts/storage';
+import { makeColors, getIsDark } from '@scripts/graphColors';
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
@@ -43,30 +44,6 @@ const TAG_COLORS = [
   '#10b981','#f59e0b','#ef4444','#ec4899',
   '#84cc16','#f97316','#14b8a6','#a855f7',
 ];
-
-// ダークモード判定とカラー生成
-function getIsDark() {
-  const theme = document.documentElement.getAttribute('data-theme') as 'dark' | 'light' | 'system';
-  if (theme === 'dark') return true;
-  if (theme === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-// カラーオブジェクトを生成
-function makeColors() {
-  const dark = getIsDark();
-  return {
-    nodeSimple:        dark ? '#4f46e5' : '#6366f1',
-    nodeCurrent:       '#f59e0b',
-    nodeMissing:       dark ? '#374151' : '#e5e7eb',
-    nodeStrokeMissing: dark ? '#4b5563' : '#9ca3af',
-    nodeStroke:        dark ? '#0f0f1a' : '#ffffff',
-    link:              dark ? '#2d2d4e' : '#e5e7eb',
-    linkHi:            dark ? '#818cf8' : '#4f46e5',
-    text:              dark ? '#cbd5e1' : '#1f2937',
-    textMuted:         dark ? '#64748b' : '#9ca3af',
-  };
-}
 
 // メイン処理
 async function main() {

@@ -87,7 +87,9 @@ const handlers: Record<string, (el: Element, text: string) => void> = {
         }
     }
 };
-// handlers で定義された属性を処理
+/**
+ * handlers で定義された属性を処理
+ */
 export function applyTranslations() {
     Object.entries(handlers).forEach(([attr, handler]) => {
         document.querySelectorAll(`[${attr}]`).forEach(function(el) {

@@ -1,7 +1,10 @@
 /**
  * @i18n/i18n.config.ts
  * i18n 設定ファイル
+ * 言語を追加する際は、src/i18n/ に翻訳ファイルを追加し、
+ * translations オブジェクトに追加する
  */
+
 // i18nフォルダ内の翻訳ファイルをインポート
 import { ja } from './ja';
 import { en } from './en';
@@ -11,13 +14,15 @@ export const translations = {
   ja,
   en
 } as const;
+// ロケール型
 export type Locale = keyof typeof translations;
+// 利用可能なロケール配列
 export const locales = Object.keys(translations) as Locale[];
+// ロケールに対応する日付フォーマット用の文字列
 const dateLocaleMap: Record<Locale, string> = {
   ja: 'ja-JP',
   en: 'en-US',
 };
-
 
 // デフォルトロケール指定
 export const defaultLocale: Locale = 'ja';

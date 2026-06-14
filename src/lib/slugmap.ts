@@ -97,7 +97,8 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
 
             // frontmatter を簡易パース
             try {
-                const parsed = parseFrontmatter(fs.readFileSync(fullPath, 'utf-8'));
+                const raw = fs.readFileSync(fullPath, 'utf-8').replace(/\r\n/g, '\n');
+                const parsed = parseFrontmatter(raw);
                 let isDraft = false;
                 let isHidden = false;
                 if (parsed) {

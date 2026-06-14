@@ -15,8 +15,7 @@
  * @param {boolean} showMeta メタ情報を表示するかどうか
  */
 
-import { t, locales, translations,type Locale, formatDate } from '@i18n/i18n.config';
-import { undefined } from 'astro:schema';
+import { t, type Locale, formatDate } from '@i18n/i18n.config';
 interface Props {
     title: string;
     localeBaseUrl: string;
@@ -58,6 +57,7 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
     const escapedPrefix = localeBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     if (isWikiPage) {
+        // ウィキページのパスからカテゴリを抽出
         const wikiPrefix = `${localeBaseUrl}/wiki`;
         const strippedPath = path.startsWith(wikiPrefix) 
             ? path.slice(wikiPrefix.length)
@@ -71,6 +71,8 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
             }
         ]
         let categoryAccumulated = '';
+
+        // カテゴリを積み上げながらパンくずリストを構築
         segments.forEach((segment, index) => {
             const isLast = index === segments.length - 1;
             categoryAccumulated += (categoryAccumulated ? '/' : '') + segment;
@@ -82,6 +84,7 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
         });
         return crumbs;
     } else {
+        // ページパスからカテゴリを抽出
         const strippedPath = path.startsWith(localeBaseUrl) 
             ? path.slice(localeBaseUrl.length)
             : path;
@@ -176,7 +179,9 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                     <div class="page-category">
                         <a href={`${localeBaseUrl}/category/${leafCategory.path}`}>
                             <i class="fa-regular fa-folder" />
-                            {translations[leafCategory.name as Locale] ? t(`category.${leafCategory.name}`, locale) : leafCategory.name}
+                            {t(`category.${leafCategory.name}`, locale) !== `category.${leafCategory.name}` 
+                                ? t(`category.${leafCategory.name}`, locale) 
+                                : leafCategory.name}
                         </a>
                     </div>
                 )}

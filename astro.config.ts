@@ -7,6 +7,8 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { remarkWikiLinks } from './src/lib/wikilinks';
 
+// SITE_URLの設定
+// .envファイルからSITE_URLを読み込み、URLオブジェクトに変換する
 const DEFAULT_SITE_URL = 'http://localhost:4321';
 let SITE_URL: string;
 try {
@@ -17,6 +19,9 @@ try {
 if (process.env.NODE_ENV !== 'development' && SITE_URL === DEFAULT_SITE_URL) {
   throw new Error('[astro.config] SITE_URL must be configured in production');
 }
+
+// BASE_PATHの設定
+// .envファイルからBASE_PATHを読み込み、/で終わる場合は末尾の/を削除する
 const rawBasePath = process.env.BASE_PATH || '/';
 if (!rawBasePath.startsWith('/')) {
   throw new Error('[astro.config] BASE_PATH must start with /');
