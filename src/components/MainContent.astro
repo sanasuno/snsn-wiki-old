@@ -43,7 +43,7 @@ const leafCategory = categories && categories.length > 0
 type Crumb = {
     label: string;
     href: string;
-    categorySegment?: string;
+    categorySegment?: string | undefined;
 }
 
 /**
@@ -56,30 +56,52 @@ type Crumb = {
  */
 function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiPage: boolean): Crumb[] {
     const escapedPrefix = localeBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const normalizedPath = isWikiPage 
-        ? path.replace(new RegExp(`^${escapedPrefix}/wiki/`), `${localeBaseUrl}/`)
-        : path;
-    const strippedPath = normalizedPath.startsWith(localeBaseUrl) 
-        ? normalizedPath.slice(localeBaseUrl.length) || '/'
-        : normalizedPath;
-    const segments = strippedPath.split('/').filter(Boolean);
-    const crumbs: Crumb[] = [
-        {
+
+    if (isWikiPage) {
+        const wikiPrefix = `${localeBaseUrl}/wiki`;
+        const strippedPath = path.startsWith(wikiPrefix) 
+            ? path.slice(wikiPrefix.length)
+            : path.slice(localeBaseUrl.length);
+        const segments = strippedPath.split('/').filter(Boolean);
+        
+        const crumbs: Crumb[] = [
+            {
+                label: t('nav.home', locale),
+                href: localeBaseUrl
+            }
+        ]
+        let categoryAccumulated = '';
+        segments.forEach((segment, index) => {
+            const isLast = index === segments.length - 1;
+            categoryAccumulated += (categoryAccumulated ? '/' : '') + segment;
+            crumbs.push({
+                label: isLast ? title : segment,
+                href: isLast ? path : `${localeBaseUrl}/category/${categoryAccumulated}`,
+                categorySegment: !isLast ? segment : undefined,
+            });
+        });
+        return crumbs;
+    } else {
+        const strippedPath = path.startsWith(localeBaseUrl) 
+            ? path.slice(localeBaseUrl.length)
+            : path;
+        const segments = strippedPath.split('/').filter(Boolean);
+
+        const crumbs: Crumb[] = [{
             label: t('nav.home', locale),
             href: localeBaseUrl
-        }
-    ]
-    let accumulated = '';
-    segments.forEach((segment, index) => {
-        accumulated += `/${segment}`;
-        const isLast = index === segments.length - 1;
-        crumbs.push({
-            label: isLast && title ? title : segment,
-            href: accumulated,
-            categorySegment: !isLast ? segment : '',
+        }];
+        let accumulated = localeBaseUrl;
+        segments.forEach((segment, index) => {
+            accumulated += `/${segment}`;
+            const isLast = index === segments.length - 1;
+            crumbs.push({
+                label: isLast ? title : segment,
+                href: accumulated,
+            });
         });
-    });
-    return crumbs;
+        return crumbs;
+    }
 }
 
 const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPage);
@@ -99,34 +121,41 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                     {crumbs.map((crumb, index) => {
                         const isHome = index === 0;
                         const isLast = index === crumbs.length - 1;
+                        const isCategorySegment = !isLast && !isHome && isWikiPage;
                         return (
                             <>
                                 <li class:list={[{ 'breadcrumb__current': isLast }]} aria-current={isLast ? 'page' : undefined}>
-                                    {crumb.href &&
-                                        isHome
-                                            ? isLast
-                                                ? <>
-                                                    <i class="fa-solid fa-house" />
-                                                    <span>{crumb.label}</span>
-                                                </>
-                                                : <>
-                                                    <i class="fa-solid fa-house" />
-                                                    <a href={crumb.href}>{crumb.label}</a>
-                                                </>
-                                            : isLast
-                                                ? <>
-                                                    <i class="fa-regular fa-file" />
-                                                    <span>{crumb.label}</span>
-                                                </>
-                                                : <>
-                                                    <!-- カテゴリページへのリンク -->
-                                                    <i class="fa-solid fa-folder" />
-                                                    <a href={`${localeBaseUrl}/category${crumb.href}`}>
-                                                        {t(`category.${crumb.label}`, locale) !== `category.${crumb.label}` 
-                                                            ? t(`category.${crumb.label}`, locale) 
-                                                            : crumb.label}
-                                                    </a>
-                                                </>
+                                    {isHome ? (
+                                        isLast
+                                            ? <>
+                                                <i class="fa-solid fa-house" />
+                                                <span>{crumb.label}</span>
+                                            </>
+                                            : <>
+                                                <i class="fa-solid fa-house" />
+                                                <a href={crumb.href}>{crumb.label}</a>
+                                            </>
+                                        ) : isLast ? (
+                                            <>
+                                                <i class="fa-regular fa-file" />
+                                                <span>{crumb.label}</span>
+                                            </>
+                                        ) : isCategorySegment ? (
+                                            <>
+                                                <!-- カテゴリページへのリンク -->
+                                                <i class="fa-solid fa-folder" />
+                                                <a href={crumb.href}>
+                                                    {t(`category.${crumb.label}`, locale) !== `category.${crumb.label}` 
+                                                        ? t(`category.${crumb.label}`, locale) 
+                                                        : crumb.label}
+                                                </a>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i class="fa-regular fa-file" />
+                                                <a href={crumb.href}>{crumb.label}</a>
+                                            </>
+                                        )
                                     }
                                 </li>
                                 {!isLast && (

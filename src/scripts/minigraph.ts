@@ -6,6 +6,7 @@
 
 import * as d3 from 'd3';
 import { defaultLocale, type Locale} from '@i18n/i18n.config';
+import { toBaseSlugFromPath } from './slugUtils';
 
 
 const container = document.getElementById('mini-graph-container');
@@ -79,7 +80,7 @@ async function initMiniGraph() {
   // ノードとリンクの抽出
   const { nodes: allNodes, links: allLinks } = allData;
 
-  const baseSlug = toRealSlug(currentPath);
+  const baseSlug = toBaseSlugFromPath(currentPath);
 
   // 現在ページに接続しているノードIDを収集（1ホップ）
   const neighborIds = new Set([baseSlug]);

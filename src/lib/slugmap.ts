@@ -145,6 +145,7 @@ const CACHE_PATH = path.resolve(process.cwd(), '.node_modules/.cache/snsn-wiki-s
 
 
 function buildCache(): SlugmapCache {
+    // キャッシュがあれば返す
     if (_cache) {
         return _cache;
     }
@@ -154,26 +155,36 @@ function buildCache(): SlugmapCache {
     const map: SlugMap = {};
     const slugs = new Set<string>();
 
+    // ディレクトリが存在しない場合は空のキャッシュを返す
     if (!fs.existsSync(wikiDir)) {
         _cache = { map, slugs };
         return _cache;
     }
 
+    // ロケールを取得
     const locales = fs.readdirSync(wikiDir, { withFileTypes: true })
         .filter(dir => dir.isDirectory())
         .map(dir => dir.name);
     
     for (const locale of locales) {
         const localeDir = path.join(wikiDir, locale);
-        const localeSlugs = new Set<string>();
-        const localeMap = scanWikiFiles(localeDir, localeSlugs, locale, false);
+
+        // mapは全ページ（draft/hidden含む）のtitle/aliasを収録
+        const allLocaleSlugs = new Set<string>();
+        const localeMap = scanWikiFiles(localeDir, allLocaleSlugs, locale, false);
         Object.assign(map, localeMap);
-        for (const slug of localeSlugs) {
+
+        // slugsは公開ページのみ
+        const publishedLocaleSlugs = new Set<string>();
+        scanWikiFiles(localeDir, publishedLocaleSlugs, locale, true);
+        for (const slug of publishedLocaleSlugs) {
             slugs.add(`${locale}/${slug}`);
         }
     }
     try {
+        // キャッシュディレクトリを作成
         fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
+        // キャッシュを書き込み
         fs.writeFileSync(CACHE_PATH, JSON.stringify(map, null, 2));
     } catch (e) {
         console.error('Failed to create cache directory:', e);
