@@ -105,7 +105,7 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
                     const aliasLines = parsed.frontmatter.aliases;
                     if (aliasLines) {
                         for (const line of aliasLines) {
-                            const a = line.replace(/^\s*-\s*/, '').replace(/["']/g, '').trim();
+                            const a = line.replace(/["']/g, '').trim();
                             if (a) {
                                 map[slugify(a)] = baseSlug;
                             }

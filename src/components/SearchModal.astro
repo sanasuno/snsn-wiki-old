@@ -478,7 +478,7 @@ input?.addEventListener('input', () => {
     debounceTimer = setTimeout(() => {
         const q = input.value;
         if (!q.trim()) { clearResults(); return; }
-        const hits = search(q);
+        const hits = search(q, index);
         renderResults(hits, q);
     }, DEBOUNCE_MS);
 });

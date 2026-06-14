@@ -40,7 +40,7 @@ export function highlight(text: string, query: string): string {
  * @param contextChars コンテキスト文字数
  * @returns 抽出されたテキスト
  */
-export function extractSnippet(body: string, query: string, contextChars: number = 60): string {
+export function extractSnippet(body: string, query: string, contextChars: number = 40): string {
     if (!query) return body.slice(0, 120);
     const lc = body.toLowerCase();
     const pos = lc.indexOf(query.toLowerCase());
