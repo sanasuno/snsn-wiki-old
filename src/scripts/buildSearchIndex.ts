@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
+import { parseFrontmatter } from 'astro/markdown';
 
 // ----------------------------------------
 // 型定義
@@ -55,33 +56,29 @@ interface FrontMatter {
     [key: string]: unknown;
 }
 
+/**
+ * Markdown ファイルのフロントマターを解析する
+ * @param raw ファイルの生テキスト
+ * @returns フロントマターと本文のオブジェクト
+ */
 function parseFrontMatter(raw: string): { meta: FrontMatter; body: string } {
     // Windows 改行正規化
-    const content = raw.replace(/\r\n/g, '\n');
-    // fronmatterブロックを検出
-    const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-    if (!match) return { meta: {}, body: content };
-
-    const yamlBlock = match[1];
-    const body = match[2] ?? '';
-
-    // YAML パース
-    let meta: FrontMatter = {};
-    try {
-        const parsed = parseYaml(yamlBlock);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            meta = parsed as FrontMatter;
-        }
-    } catch (e) {
-        console.warn('YAML parse error:', e);
-    }
-    return { meta, body };
+    const parsed = parseFrontmatter(raw.replace(/\r\n/g, '\n'));
+    return {
+        meta: (parsed?.frontmatter as FrontMatter) ?? {},
+        body: parsed?.content ?? raw
+    };
 }
 
 // ----------------------------------------
 // Markdown → プレーンテキスト変換
 // ----------------------------------------
 
+/**
+ * Markdown をプレーンテキストに変換する
+ * @param md Markdown テキスト
+ * @returns プレーンテキスト
+ */
 function mdToText(md: string): string {
     return md
         // コードブロック除去
@@ -114,6 +111,12 @@ function mdToText(md: string): string {
 // ファイル走査
 // ----------------------------------------
 
+/**
+ * ディレクトリを再帰的に走査し、Markdown ファイルのパス一覧を返す
+ * @param dir 走査するディレクトリパス
+ * @param baseDir ベースディレクトリ（相対パス計算用）
+ * @returns Markdown ファイルのパス配列
+ */
 function walkDir(dir: string, baseDir: string): string[] {
     if (!fs.existsSync(dir)) return [];
     const results: string[] = [];
@@ -132,6 +135,11 @@ function walkDir(dir: string, baseDir: string): string[] {
 // ロケール別エントリ収集
 // ----------------------------------------
 
+/**
+ * 指定されたロケールの検索エントリを構築する
+ * @param locale ロケール
+ * @returns 検索エントリの配列
+ */
 function buildEntries(locale: Locale): SearchEntry[] {
     const localeDir = path.join(CONTENT_ROOT, locale);
     const files = walkDir(localeDir, localeDir);
@@ -170,13 +178,18 @@ function buildEntries(locale: Locale): SearchEntry[] {
 // メイン
 // ----------------------------------------
 
+/**
+ * 検索インデックスをビルドするメイン関数
+ */
 function main() {
     console.log('CONTENT_ROOT:', CONTENT_ROOT);
     console.log('PUBLIC_DIR:  ', PUBLIC_DIR);
+    // public ディレクトリが存在しない場合は作成
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
 
+    // 各ロケールに対してインデックスを生成
     for (const locale of LOCALES) {
         const entries = buildEntries(locale);
         const outPath = path.join(PUBLIC_DIR, `search-index.${locale}.json`);

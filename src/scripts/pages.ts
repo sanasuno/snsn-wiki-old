@@ -1,5 +1,7 @@
 /**
  * @srcipts/pages.ts
+ * 
+ * ページ関連のユーティリティ関数
  */
 
 /**
@@ -9,12 +11,19 @@
  * @returns ベーススラッグごとのユニークページ
  */
 import type { Locale } from "@i18n/i18n.config";
-export function getUniquePagesByLocale(pages: any[], locale: Locale) {
-    const uniquePagesByBaseSlug: Record<string, (typeof pages)[0]> = {};
+import type { CollectionEntry } from "astro:content";
+export function getUniquePagesByLocale(
+    pages: CollectionEntry<'wiki'>[],
+    locale: Locale
+): CollectionEntry<'wiki'>[] {
+    const uniquePagesByBaseSlug: Record<string, CollectionEntry<'wiki'>> = {};
     for (const page of pages) {
+        // ページIDをスラッグに分割し、ロケールとベーススラッグを取得
         const parts = page.id.split('/');
         const pLocale = parts[0];
         const baseSlug = parts.slice(1).join('/');
+        
+        // ベーススラッグがまだ登録されていない場合、または現在のロケールの場合、ページを登録
         if (!uniquePagesByBaseSlug[baseSlug]) {
             uniquePagesByBaseSlug[baseSlug] = page;
         } else if (pLocale === locale) {

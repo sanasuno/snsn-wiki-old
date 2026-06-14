@@ -5,10 +5,9 @@
  * ビルド前にキャッシュファイルを生成して参照する
  */
 
-import { parseFrontmatter } from 'astro/markdown';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse } from 'yaml';
+import { parseFrontmatter } from 'astro/markdown';
 
 /**
  * ページ名をURLスラッグに変換する
@@ -33,10 +32,10 @@ export function slugify(text: string): string {
  */
 export function pathToSlug(filePath: string): string {
     return path
-        .relative(process.cwd(), filePath)
-        .replace(/\.(md|mdx)$/, '')
+        .relative(process.cwd(), filePath) // プロジェクトルートからの相対パス
+        .replace(/\.(md|mdx)$/, '') // 拡張子を削除
         .split('/')
-        .map(part => slugify(part))
+        .map(part => slugify(part)) // 各部分をスラッグ化
         .join('/');
 }
 
@@ -57,7 +56,9 @@ export function toRealSlug(fullSlug: string): string {
     return parts.slice(1).join('/');
 }
 
+// キャッシュ
 let _cache: SlugMap | null = null;
+let _slugsCache: Set<string> | null = null;
 const CACHE_PATH = path.resolve(process.cwd(), '.node_modules/.cache/snsn-wiki-slugmap.json');
 
 /**
@@ -131,6 +132,10 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
  * @returns スラッグマップ
  */
 export function buildSlugMapSync(): SlugMap {
+    // キャッシュがあれば利用
+    if (_cache) {
+        return _cache;
+    }
     
     // wikiディレクトリをスキャン
     const wikiDir = path.resolve(process.cwd(), 'src/content/wiki');
@@ -155,7 +160,7 @@ export function buildSlugMapSync(): SlugMap {
 }
 
 /**
- * テキストから実スラッグに解決
+ * テキストから実スラッグに解決する
  * @param text テキスト
  * @returns 実スラッグ
  */
@@ -167,8 +172,14 @@ export function resolveSlug(text: string, map: SlugMap): string {
 /**
  * 公開済みページ（draft: false かつ hidden: false のページ）の
  * 実際の物理スラッグ集合を返す
+ * @returns 実際の物理スラッグ集合
  */
 export function buildPublishedSlugs(): Set<string> {
+    // キャッシュがあれば利用
+    if (_slugsCache) {
+        return _slugsCache;
+    }
+    
     const wikiDir = path.resolve(process.cwd(), 'src/content/wiki');
     // 公開済みページを抽出
     const publishedSlugs = new Set<string>();
@@ -190,5 +201,6 @@ export function buildPublishedSlugs(): Set<string> {
             publishedSlugs.add(`${locale}/${slug}`);
         }
     }
+    _slugsCache = publishedSlugs;
     return publishedSlugs;
 }

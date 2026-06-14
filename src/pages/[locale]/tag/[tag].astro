@@ -39,6 +39,7 @@ const { tag, tagPages } = Astro.props;
 const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
 const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
 const localeBaseUrl = `${baseUrl}/${locale}`;
+const wikiBaseUrl = `${localeBaseUrl}/wiki`;
 
 const filterTag = tag.split('/');
 const tagLabel = filterTag[filterTag.length - 1];
@@ -88,7 +89,7 @@ const alternateLinks = locales.map((loc) => ({
                         <li class="index-page-item">
                             <div class="index-page-item-header">
                                 <div class="index-page-item-title">
-                                    <a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+                                    <a href={getRoute(page.id, wikiBaseUrl)} class="index-file">
                                         <i class="fa-regular fa-file-lines" />
                                         {page.data.title}
                                     </a>
