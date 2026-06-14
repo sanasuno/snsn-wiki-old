@@ -121,7 +121,9 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                                                 : <>
                                                     <!-- カテゴリページへのリンク -->
                                                     <i class="fa-solid fa-folder" />
-                                                    <a href={`${localeBaseUrl}/category${crumb.href}`}>{translations[crumb.label as Locale] ? t(`category.${crumb.label}`, locale) : crumb.label}</a>
+                                                    <a href={`${localeBaseUrl}/category${crumb.href}`}>
+                                                        {t(`category.${crumb.label}`, locale) !== crumb.label ? t(`category.${crumb.label}`, locale) : crumb.label}
+                                                    </a>
                                                 </>
                                     }
                                 </li>

@@ -5,6 +5,7 @@
 
 import * as d3 from 'd3';
 import { type Locale, defaultLocale } from '@i18n/i18n.config';
+import { savePreference, getPreference } from '@scripts/storage';
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
@@ -34,7 +35,7 @@ const graphApiUrl = `${localeBaseUrl}/api/graph.json`;
 //   'tag'     : タグ別カラー（カラフル）
 // =============================================
 const STORAGE_KEY = 'snsn-graph-colormode';
-let colorMode = localStorage.getItem(STORAGE_KEY) || 'simple';
+let colorMode = getPreference(STORAGE_KEY) || 'simple';
 
 // シンプルモード用カラー
 const TAG_COLORS = [
@@ -45,7 +46,7 @@ const TAG_COLORS = [
 
 // ダークモード判定とカラー生成
 function getIsDark() {
-  const theme = document.documentElement.getAttribute('data-theme');
+  const theme = getPreference('theme') as 'dark' | 'light' | 'system';
   if (theme === 'dark') return true;
   if (theme === 'light') return false;
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -123,9 +124,9 @@ async function main() {
   updateLegend();
 
   // カラーモード切替ボタン
-  document.getElementById('toggle-color')?.addEventListener('click', () => {
+  (document.getElementById('toggle-color') as HTMLButtonElement)?.addEventListener('click', () => {
     colorMode = colorMode === 'simple' ? 'tag' : 'simple';
-    localStorage.setItem(STORAGE_KEY, colorMode);
+    savePreference(STORAGE_KEY, colorMode);
     updateLegend();
     draw();
   });

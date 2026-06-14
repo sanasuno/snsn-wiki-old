@@ -75,14 +75,6 @@ function parseFrontMatter(raw: string): { meta: FrontMatter; body: string } {
     } catch (e) {
         console.warn('YAML parse error:', e);
     }
-    for (const line of yamlBlock.split('\n')) {
-        const kv = line.match(/^(\w+):\s*(.+)$/);
-        if (!kv) continue;
-        const [, key, value] = kv;
-        if (value === 'true')       meta[key] = true;
-        else if (value === 'false') meta[key] = false;
-        else                        meta[key] = value.replace(/^['"]|['"]$/g, '');
-    }
     return { meta, body };
 }
 

@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse as parseYaml } from 'yaml';
 
 /**
  * ページ名をURLスラッグに変換する
@@ -89,21 +90,18 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
 
             // frontmatter を簡易パース
             try {
-                // \r\n → \n に正規化してからパース
-                const content = fs.readFileSync(fullPath, 'utf-8').replace(/\r\n/g, '\n');
-                const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+                const parsed = parseYaml(fs.readFileSync(fullPath, 'utf-8'));
                 let isDraft = false;
                 let isHidden = false;
-                if (fmMatch) {
-                    const fm = fmMatch[1];
+                if (parsed) {
                     // title があればスラッグマップに追加
-                    const titleMatch = fm.match(/^title:\s*["']?(.*?)["']?\s*$/m);
+                    const titleMatch = parsed.title;
                     if (titleMatch) {
-                        const title = titleMatch[1].trim();
+                        const title = titleMatch.trim();
                         map[slugify(title)] = baseSlug;
                     }
                     // aliases (インライン形式) があればスラッグマップに追加
-                    const aliasBlock = fm.match(/^aliases:\s*\[([^\]]+)\]/m);
+                    const aliasBlock = parsed.aliases;
                     if (aliasBlock) {
                         for (const alias of aliasBlock[1].split(',')) {
                             const aliasName = alias.trim().replace(/["']/g, '');
@@ -111,17 +109,17 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
                         }
                     }
                     // aliases（複数行形式）があればスラッグマップに追加
-                    const aliasLines = fm.match(/^aliases:\s*\r?\n((?:\s*-\s*.+\r?\n?)+)/m);
+                    const aliasLines = parsed.aliases;
                     if (aliasLines) {
-                        for (const line of aliasLines[1].split('\n')) {
+                        for (const line of aliasLines) {
                             const a = line.replace(/^\s*-\s*/, '').replace(/["']/g, '').trim();
                             if (a) {
                                 map[slugify(a)] = baseSlug;
                             }
                         }
                     }
-                    isDraft = /^draft:\s*true/m.test(fm);
-                    isHidden = /^hidden:\s*true/m.test(fm);
+                    isDraft = parsed.draft === true;
+                    isHidden = parsed.hidden === true;
                 }
                 if (!publishOnly || (!isDraft && !isHidden)) {
                     slugs.add(baseSlug);

@@ -182,7 +182,11 @@ const sorters: Record<string, (a: WikiPage, b: WikiPage) => number> = {
                 <section class="sidebar-section">
                     <button class="sidebar-section-title sidebar-toggle" data-storage-key={storageKey} aria-expanded="true">
                         <i class="fa-solid fa-folder fa-fw" />
-                        {t(category, locale)}
+                        {category === '' 
+                            ? t('home.title', locale) 
+                            : (t(`category.${category}`, locale) !== `category.${category}` 
+                                ? t(`category.${category}`, locale) 
+                                : category)}
                         <i class="fa-solid fa-chevron-down sidebar-chevron" />
                     </button>
                     <div class="sidebar-nav sidebar-collapsible">
