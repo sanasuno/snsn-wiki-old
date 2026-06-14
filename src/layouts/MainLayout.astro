@@ -154,9 +154,8 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href;
             </MainContent>
 
             <!-- 目次パネル -->
-            {!!isWikiPage && (
-            <aside class="toc-panel" id="toc-panel">
-                {hasTocPanel && 
+            {hasTocPanel && (
+                <aside class="toc-panel" id="toc-panel">
                     <Toc 
                         headings={headings} 
                         locale={locale} 
@@ -167,9 +166,7 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href;
                         localeBaseUrl={localeBaseUrl} 
                         currentPath={currentPath}
                     />
-                }
-
-            </aside>
+                </aside>
             )}
         </div>
         <script>

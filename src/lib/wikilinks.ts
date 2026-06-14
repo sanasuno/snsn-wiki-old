@@ -13,9 +13,6 @@ import { slugify, buildSlugMapSync, buildPublishedSlugs, resolveSlug, type SlugM
 // WikiLink 抽出（静的解析用）
 // ==============================
 
-// モジュールトップをキャプチャする
-const WIKILINK_REGEX = /\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g;
-
 /**
  * マークダウン本文からWikiリンクの参照先スラッグ一覧を抽出
  * バックリンク・グラフデータ構築に使用
@@ -35,7 +32,7 @@ export function extractWikiLinks(
     const slugs = existingSlugs || buildPublishedSlugs();
     const links: string[] = [];
     let match: RegExpExecArray | null;
-    const regex = new RegExp(WIKILINK_REGEX.source, 'g');
+    const regex = new RegExp(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g.source, 'g');
 
     // regexでマッチしたすべてのWikiリンクを処理
     while ((match = regex.exec(body)) !== null) {

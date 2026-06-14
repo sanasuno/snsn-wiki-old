@@ -5,9 +5,10 @@
  * ビルド前にキャッシュファイルを生成して参照する
  */
 
+import { parseFrontmatter } from 'astro/markdown';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse as parseYaml } from 'yaml';
+import { parse } from 'yaml';
 
 /**
  * ページ名をURLスラッグに変換する
@@ -90,26 +91,18 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
 
             // frontmatter を簡易パース
             try {
-                const parsed = parseYaml(fs.readFileSync(fullPath, 'utf-8'));
+                const parsed = parseFrontmatter(fs.readFileSync(fullPath, 'utf-8'));
                 let isDraft = false;
                 let isHidden = false;
                 if (parsed) {
                     // title があればスラッグマップに追加
-                    const titleMatch = parsed.title;
+                    const titleMatch = parsed.frontmatter.title;
                     if (titleMatch) {
                         const title = titleMatch.trim();
                         map[slugify(title)] = baseSlug;
                     }
-                    // aliases (インライン形式) があればスラッグマップに追加
-                    const aliasBlock = parsed.aliases;
-                    if (aliasBlock) {
-                        for (const alias of aliasBlock[1].split(',')) {
-                            const aliasName = alias.trim().replace(/["']/g, '');
-                            map[slugify(aliasName)] = baseSlug;
-                        }
-                    }
                     // aliases（複数行形式）があればスラッグマップに追加
-                    const aliasLines = parsed.aliases;
+                    const aliasLines = parsed.frontmatter.aliases;
                     if (aliasLines) {
                         for (const line of aliasLines) {
                             const a = line.replace(/^\s*-\s*/, '').replace(/["']/g, '').trim();
@@ -118,8 +111,8 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
                             }
                         }
                     }
-                    isDraft = parsed.draft === true;
-                    isHidden = parsed.hidden === true;
+                    isDraft = parsed.frontmatter.draft === true;
+                    isHidden = parsed.frontmatter.hidden === true;
                 }
                 if (!publishOnly || (!isDraft && !isHidden)) {
                     slugs.add(baseSlug);
@@ -138,25 +131,6 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
  * @returns スラッグマップ
  */
 export function buildSlugMapSync(): SlugMap {
-    // キャッシュがあれば返す
-    if (_cache) {
-        return _cache;
-    }
-    
-    // キャッシュファイルがあれば使う（同一ビルド内での重複ビルド防止）
-    if (fs.existsSync(CACHE_PATH)) {
-        try {
-            const stat = fs.statSync(CACHE_PATH);
-            // 1分以内のキャッシュなら再利用
-            if (Date.now() - stat.mtimeMs < 60 * 1000) {
-                const data = fs.readFileSync(CACHE_PATH, 'utf-8');
-                _cache = JSON.parse(data) as SlugMap;
-                return _cache;
-            }
-        } catch (error) {
-            console.error('Failed to read slugmap cache:', error);
-        }
-    }
     
     // wikiディレクトリをスキャン
     const wikiDir = path.resolve(process.cwd(), 'src/content/wiki');

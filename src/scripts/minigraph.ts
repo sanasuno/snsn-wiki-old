@@ -30,7 +30,7 @@ function toRealSlug(fullSlug: string): string {
   if (match) return match[1];
   // wiki以外のパス（トップページ等）
   const parts = fullSlug.split('/').filter(Boolean);
-  return parts.slice(2).join('/'); // locale と wiki を除く
+  return parts.slice(1).join('/'); // locale を除く
 }
 
 function getIsDark() {

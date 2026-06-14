@@ -1591,7 +1591,7 @@ body {
 
 /* ── 非表示エントリ ───────────────────────────────── */
 .page-entry[data-hidden] {
-    display: none;
+    display: none !important;
 }
 
 .pages-empty {
@@ -1605,5 +1605,5 @@ body {
 }
 
 .pages-empty[hidden] {
-    display: none;
+    display: none !important;
 }

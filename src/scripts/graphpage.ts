@@ -46,7 +46,7 @@ const TAG_COLORS = [
 
 // ダークモード判定とカラー生成
 function getIsDark() {
-  const theme = getPreference('theme') as 'dark' | 'light' | 'system';
+  const theme = document.documentElement.getAttribute('data-theme') as 'dark' | 'light' | 'system';
   if (theme === 'dark') return true;
   if (theme === 'light') return false;
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -73,8 +73,8 @@ async function main() {
   const canvas    = document.getElementById('graph-canvas');
   const loading   = document.getElementById('graph-loading');
   const tooltip   = document.getElementById('graph-tooltip');
-  const ttTitle   = document.getElementById('tooltip-title');
-  const ttTags    = document.getElementById('tooltip-tags');
+  const ttTitle   = document.getElementById('graph-tooltip-title');
+  const ttTags    = document.getElementById('graph-tooltip-tags');
   const legend    = document.getElementById('legend-node-sample');
 
   // 要素の存在チェック

@@ -40,7 +40,7 @@ const CONTENT_ROOT = path.resolve(__dirname, '../content/wiki');
 const PUBLIC_DIR   = path.resolve(__dirname, '../../public');
 
 /** サポートするロケール（i18n.config.ts の locales と合わせる） */
-import { locales } from '@i18n/i18n.config';
+import { locales } from '../i18n/i18n.config';
 const LOCALES = locales as readonly string[];
 type Locale = typeof LOCALES[number];
 

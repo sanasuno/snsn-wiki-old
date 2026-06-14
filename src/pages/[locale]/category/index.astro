@@ -41,7 +41,7 @@ for (const page of pages) {
 }
 
 const sortedCategories = Object.entries(categoryMap).sort(([a], [b]) => 
-	a[0].localeCompare(b[0], locale)
+	a.localeCompare(b, locale)
 );
 
 ---

@@ -2,6 +2,8 @@
  * @scripts/search.ts
  */
 
+import type { SearchEntry } from "./buildSearchIndex";
+
 // ----------------------------------------
 // 検索・ハイライト
 // ----------------------------------------
@@ -57,7 +59,7 @@ export function extractSnippet(body: string, query: string, contextChars: number
  * @param index 検索インデックス
  * @returns 検索結果
  */
-export function search(query: string, index: any[], maxResults: number = 20) {
+export function search(query: string, index: SearchEntry[], maxResults: number = 20) {
     if (!index) return [];
     const q = query.trim().toLowerCase();
     if (!q) return [];
