@@ -10,6 +10,7 @@ import Sidebar from '@components/Sidebar.astro';
 import MainContent from '@components/MainContent.astro';
 import Toc from '@components/Toc.astro';
 import MiniGraph from '@components/MiniGraph.astro';
+import MermaidRenderer from '@components/MermaidRenderer.astro';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'katex/dist/katex.min.css';
@@ -168,6 +169,7 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href;
                     />
                 </aside>
             )}
+            <MermaidRenderer />
         </div>
         <script>
             import "@scripts/main"

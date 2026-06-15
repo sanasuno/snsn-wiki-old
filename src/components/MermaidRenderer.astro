@@ -1,0 +1,79 @@
+---
+/**
+ * @components/MermaidRenderer.astro
+ * Mermaid図をレンダリングするコンポーネント
+ */
+---
+<script type="module">
+    import mermaid from 'mermaid'
+    import { getTheme } from '@utils/theme'
+
+    // コードブロックからソースを抽出
+    function extractSource(pre) {
+        const lines = pre.querySelectorAll('.line');
+        if (lines.length > 0) {
+            return Array.from(lines).map(l => l.textContent).join('\n');
+        }
+        return pre.querySelectorAll('code')?.textContent ?? pre.textContent ?? '';
+    }
+
+    let counter = 0;
+
+    async function renderAll() {
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: getTheme(),
+            securityLevel: 'loose'
+        });
+
+        const blocks = document.querySelectorAll('pre[data-lang="mermaid"]');
+        for (const pre of blocks) {
+            const source = extractSource(pre);
+            const id = `mermaid-${counter++}`;
+            try {
+                const { svg } = await mermaid.render(id, source);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mermaid';
+                wrapper.dataset.mermaidSource = source;
+                wrapper.innerHTML = svg;
+                pre.parentNode?.replaceChild(wrapper, pre);
+            } catch (error) {
+                const msg = document.createElement('pre');
+                msg.className = 'mermaid-error';
+                msg.textContent = `Mermaid rendering failed: ${error.message}`;
+                pre.parentNode?.replaceChild(msg, pre);
+                console.error('Mermaid rendering failed:', error);
+            }
+        }
+    }
+
+    async function renderer() {
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: getTheme(),
+            securityLevel: 'loose'
+        });
+        const diagrams = document.querySelectorAll('.mermaid');
+        for (const diagram of diagrams) {
+            const source = diagram.dataset.mermaidSource;
+            if (!source) continue;
+            const id = `mermaid-${counter++}`;
+            try {
+                const { svg } = await mermaid.render(id, source);
+                const next = document.createElement('div');
+                next.className = 'mermaid';
+                next.dataset.mermaidSource = source;
+                next.innerHTML = svg;
+                diagram.parentNode?.replaceChild(next, diagram);
+            } catch (error) {
+                console.error('Mermaid rendering failed:', error);
+            }
+        }
+    }
+
+    renderAll();
+
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        setTimeout(renderer, 0);
+    });
+</script>
