@@ -20,6 +20,7 @@ export const getStaticPaths = () => {
 const locale = Astro.params.locale as Locale;
 const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
 const localeBaseUrl = `${baseUrl}/${locale}`;
+const wikiBaseUrl = `${localeBaseUrl}/wiki`;
 const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
 
 const alternateLinks = locales.map((locale) => ({
@@ -81,7 +82,7 @@ const sortedCategories = Object.entries(categoryMap).sort(([a], [b]) =>
 							<li class="index-page-item">
 								<div class="index-page-item-header">
 									<div class="index-page-item-title">
-										<a href={`${localeBaseUrl}/wiki${getRoute(page.id, baseUrl)}`} class="index-file">
+										<a href={getRoute(page.id, wikiBaseUrl)} class="index-file">
 											<i class="fa-regular fa-file-lines" />
 											{page.data.title}
 										</a>

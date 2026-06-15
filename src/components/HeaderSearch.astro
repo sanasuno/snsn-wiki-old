@@ -373,7 +373,7 @@ function goToSearchPage() {
 input.addEventListener('focus', async () => {
     if (input.value.trim()) {
         await ensureIndex();
-        const hits = search(input.value, index!);
+        const hits = search(input.value, index!, MAX_DROPDOWN);
         renderDropdown(hits, input.value);
     }
 });
@@ -385,7 +385,7 @@ input.addEventListener('input', () => {
 
     debounceTimer = setTimeout(async () => {
         await ensureIndex();
-        const hits = search(q, index!);
+        const hits = search(q, index!, MAX_DROPDOWN);
         renderDropdown(hits, q);
     }, DEBOUNCE_MS);
 });

@@ -123,9 +123,9 @@ async function main() {
   ro.observe(container);
 
   document.addEventListener('astro:before-swap', () => {
-    ro.disconnect(),
-    { once: true }
-  });
+    ro.disconnect();
+    themeObserver.disconnect();
+  }, { once: true });
 
   // ノードの半径計算（リンク数に応じて大きくなる）
   const R = (n: GraphNode) => 7 + Math.min((n.linkCount || 0) * 1.5, 14);
@@ -144,7 +144,19 @@ async function main() {
 
   // ズーム・パン設定
   let tf = d3.zoomIdentity;
-  const zoom = d3.zoom<HTMLCanvasElement, unknown>().scaleExtent([0.05, 5]).on('zoom', e => { tf = e.transform; draw(); });
+  const zoom = d3.zoom<HTMLCanvasElement, unknown>()
+    .scaleExtent([0.05, 5])
+    .filter((event) => {
+      if (event.type === 'mousedown') {
+        const rc = canvas.getBoundingClientRect();
+        return !hit(event.clientX - rc.left, event.clientY - rc.top);
+      }
+      return !event.button;
+    })
+    .on('zoom', e => {
+      tf = e.transform;
+      draw();
+    })
   d3.select(canvas).call(zoom);
 
   // 全体表示関数
@@ -279,17 +291,20 @@ async function main() {
     d3.drag<HTMLCanvasElement, unknown>()
       .subject(e => { const rc = canvas.getBoundingClientRect(); return hit(e.x-rc.left, e.y-rc.top); })
       .on('start', e => {
+        // ドラッグ開始時にシミュレーションを開始
         if (!e.subject) return;
         if (!e.active) sim.alphaTarget(0.3).restart();
         e.subject.fx = e.subject.x; e.subject.fy = e.subject.y;
       })
       .on('drag', e => {
+        // ドラッグ中はノードを固定位置に設定
         if (!e.subject) return;
         const rc = canvas.getBoundingClientRect();
         const [wx, wy] = tf.invert([e.x - rc.left, e.y - rc.top]);
         e.subject.fx = wx; e.subject.fy = wy;
       })
       .on('end', e => {
+        // ドラッグ終了時にシミュレーションを停止
         if (!e.subject) return;
         if (!e.active) sim.alphaTarget(0);
         e.subject.fx = null; e.subject.fy = null;
@@ -297,8 +312,18 @@ async function main() {
   );
 
   // テーマ変化時に再描画・凡例更新
-  new MutationObserver(() => { updateLegend(); draw(); })
-    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  const themeObserver = new MutationObserver(() => { updateLegend(); draw(); });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme']
+  });
+
+  // ページ遷移時にdisconnect
+  document.addEventListener('astro:before-swap', () => {
+    themeObserver.disconnect();
+    ro.disconnect();
+  },
+  { once: true });
 }
 
 // メイン処理実行

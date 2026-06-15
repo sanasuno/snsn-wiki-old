@@ -37,7 +37,10 @@ export function extractWikiLinks(
     let match: RegExpExecArray | null;
     while ((match = PATTERN.exec(body)) !== null) {
         const pageName = match[1].trim();
-        const baseSlug = resolveSlug(pageName, map);
+        const rawSlug = resolveSlug(pageName, map);
+        const baseSlug = slugs.has(`${sourceLocale}/${rawSlug}`) || slugs.has(`${defaultLocale}/${rawSlug}`)
+            ? rawSlug
+            : slugify(pageName);
         let targetFullSlug  = `${sourceLocale}/${baseSlug}`;
         // ページが存在しない場合、デフォルトロケールのページを探す
         if (!slugs.has(targetFullSlug)) {

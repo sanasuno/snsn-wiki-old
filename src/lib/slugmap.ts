@@ -142,16 +142,45 @@ interface SlugmapCache {
 // キャッシュ
 let _cache: SlugmapCache | null = null;
 const CACHE_PATH = path.resolve(process.cwd(), '.node_modules/.cache/snsn-wiki-slugmap.json');
+const WIKI_DIR = path.resolve(process.cwd(), 'src/content/wiki');
 
+function getCacheMtime(): number {
+    try {
+        return fs.statSync(CACHE_PATH).mtimeMs;
+    } catch (error) {
+        return 0;
+    }
+}
+
+function getWikiLatestMtime(dir: string): number {
+    let latest = 0;
+    if (!fs.existsSync(dir)) return latest;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            latest = Math.max(latest, getWikiLatestMtime(fullPath));
+        } else {
+            try {
+                latest = Math.max(latest, fs.statSync(fullPath).mtimeMs);
+            } catch (error) {
+                console.error(`Error getting mtime for file ${fullPath}:`, error);
+            }
+        }
+    }
+    return latest;
+}
 
 function buildCache(): SlugmapCache {
     // キャッシュがあれば返す
     if (_cache) {
         return _cache;
     }
-
-    // キャッシュファイルがあれば読み込む
-    if (fs.existsSync(CACHE_PATH)) {
+    // キャッシュの更新日時を取得
+    const cacheMtime = getCacheMtime();
+    // wikiディレクトリの最新更新日時を取得
+    const wikiMtime = getWikiLatestMtime(WIKI_DIR);
+    // キャッシュがwikiより新しい場合、キャッシュを返す
+    if (cacheMtime > wikiMtime && fs.existsSync(CACHE_PATH)) {
         try {
             const raw = fs.readFileSync(CACHE_PATH, 'utf-8');
             const map = JSON.parse(raw) as SlugMap;

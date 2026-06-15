@@ -35,7 +35,7 @@ export interface SearchEntry {
 // ----------------------------------------
 // 設定
 // ----------------------------------------
-const BASE_PATH = (process.env.BASE_PATH || '/').replace(/\/+$/, '') || '';
+const BASE_PATH = (process.env.BASE_PATH || '').replace(/\/+$/, '');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CONTENT_ROOT = path.resolve(__dirname, '../content/wiki');
 const PUBLIC_DIR   = path.resolve(__dirname, '../../public');

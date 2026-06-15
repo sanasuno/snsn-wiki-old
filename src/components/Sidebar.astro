@@ -39,11 +39,8 @@ function isCurrentPageId(pageId: string): boolean {
 // 全ページを取得
 const allPages = await getCollection("wiki", (p) => !p.data.draft && !p.data.hidden);
 
-// 重複を排除して最も適切なページを選択
-const uniquePages = getUniquePagesByLocale(allPages, locale);
-
 // カテゴリ別にページをグループ化
-const pages = Object.values(uniquePages);
+const pages = getUniquePagesByLocale(allPages, locale);
 const byCategory: Record<string, typeof pages> = {};
 for (const page of pages) {
     const category: string[] = getCategoryFromId(page.id) || [];
