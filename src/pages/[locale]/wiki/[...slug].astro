@@ -8,6 +8,7 @@ import { locales, defaultLocale, type Locale } from '@i18n/i18n.config';
 import { isLocale } from '@scripts/i18n';
 import MainLayout from '@layouts/MainLayout.astro';
 import type { GetStaticPathsResult } from 'astro';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import { removeTrailingSlash } from '@scripts/utils';
 import { getCategoryFromId } from '@scripts/category';
 
@@ -68,12 +69,12 @@ const { Content, headings } = await render(page);
 // すべてのサポート言語について代替URLを生成
 const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : '';
 const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
-const normalizedSlug = baseSlug === '' || baseSlug === 'index'
-    ? '/'
-    : `/${baseSlug.replace(/\/index$/, '')}`;
+const wikiSlug = baseSlug === '' || baseSlug === 'index' 
+  ? '' 
+  : `/${baseSlug.replace(/\/index$/, '')}`;
 const alternateLinks = locales.map(locale => ({
   locale,
-  url: `${siteUrl}${baseUrl}/${locale}/wiki${normalizedSlug}`
+  url: `${siteUrl}${baseUrl}/${locale}/wiki${wikiSlug}`
 }));
 ---
 
