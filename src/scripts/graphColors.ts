@@ -14,11 +14,16 @@ export function getIsDark(): boolean {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
+/**
+ * グラフの色を生成する
+ * @returns グラフの色
+ */
 export function makeColors() {
     const dark = getIsDark();
     return {
         nodeSimple:         dark ? '#4f46e5' : '#6366f1',
         nodeCurrent:        '#f59e0b',
+        nodeNeighbor:       dark ? '#4f46e5' : '#6366f1',
         nodeMissing:        dark ? '#374151' : '#e5e7eb',
         nodeStrokeMissing:  dark ? '#4b5563' : '#9ca3af',
         nodeStroke:         dark ? '#0f0f1a' : '#ffffff',

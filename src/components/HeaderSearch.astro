@@ -278,7 +278,7 @@ function renderDropdown(entries: SearchEntry[], query: string) {
 
     // 候補リスト
     for (const entry of entries) {
-        const snippet = extractSnippet(entry.body, query.trim());
+        const snippet = extractSnippet(entry.body, query.trim(), CONTEXT_CHARS);
         const li = document.createElement('li');
         li.className = 'hsd-item';
         li.setAttribute('role', 'option');

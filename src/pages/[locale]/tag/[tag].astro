@@ -36,7 +36,6 @@ export async function getStaticPaths() {
 const locale = Astro.params.locale as Locale;
 const { tag, tagPages } = Astro.props;
 
-const allPages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);
 const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
 const localeBaseUrl = `${baseUrl}/${locale}`;
 const wikiBaseUrl = `${localeBaseUrl}/wiki`;
@@ -45,8 +44,7 @@ const filterTag = tag.split('/');
 const tagLabel = filterTag[filterTag.length - 1];
 
 // ロケール優先で重複排除
-const uniquePages = getUniquePagesByLocale(tagPages, locale);
-const sortedPages: typeof tagPages = Object.values(uniquePages).sort((a, b) =>
+const sortedPages = getUniquePagesByLocale(tagPages, locale).sort((a, b) =>
     a.data.title.localeCompare(b.data.title)
 );
 

@@ -35,7 +35,7 @@ export interface SearchEntry {
 // ----------------------------------------
 // 設定
 // ----------------------------------------
-
+const BASE_PATH = (process.env.BASE_PATH || '/').replace(/\/+$/, '') || '';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CONTENT_ROOT = path.resolve(__dirname, '../content/wiki');
 const PUBLIC_DIR   = path.resolve(__dirname, '../../public');
@@ -159,7 +159,7 @@ function buildEntries(locale: Locale): SearchEntry[] {
             .replace(/(^|\/)index$/, '')
             .replace(/\/$/, '');
 
-        const url = `/${locale}/wiki${slug ? `/${slug}` : ''}`;
+        const url = `${BASE_PATH}/${locale}/wiki${slug ? `/${slug}` : ''}`;
 
         const plainText = mdToText(body);
         const excerpt = plainText.slice(0, 300).replace(/\s+/g, ' ').trim();

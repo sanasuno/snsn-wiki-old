@@ -51,8 +51,7 @@ const categoryPages = allPages.filter(page =>
 );
 
 // ロケール優先で重複排除
-const uniquePages = getUniquePagesByLocale(categoryPages, locale);
-const sortedPages: typeof categoryPages = Object.values(uniquePages).sort((a, b) =>
+const sortedPages = getUniquePagesByLocale(categoryPages, locale).sort((a, b) =>
     a.data.title.localeCompare(b.data.title)
 );
 
@@ -60,7 +59,7 @@ const sortedPages: typeof categoryPages = Object.values(uniquePages).sort((a, b)
 // 例: filterCategory = ['tech'] のとき
 //   getCategoryFromId が ['tech', 'astro', ...] のページから 'astro' を取り出す
 const childCategorySet = new Set<string>();
-for (const page of Object.values(uniquePages)) {
+for (const page of Object.values(sortedPages)) {
     const cats = getCategoryFromId(page.id);
     // filterCategory より1階層深いセグメントが存在する場合、それが直下の子カテゴリ
     if (cats.length > filterCategory.length && matchCategory(cats, filterCategory)) {
@@ -72,7 +71,7 @@ for (const page of Object.values(uniquePages)) {
 const childCategories = Array.from(childCategorySet).sort().map((childCat) => {
     const childPath = [...filterCategory, childCat].join('/');
     const childFilter = childPath.split('/');
-    const count = Object.values(uniquePages).filter(page =>
+    const count = Object.values(sortedPages).filter(page =>
         matchCategory(getCategoryFromId(page.id), childFilter)
     ).length;
     return { name: childCat, path: childPath, count };

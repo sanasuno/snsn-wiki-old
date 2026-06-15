@@ -149,6 +149,19 @@ function buildCache(): SlugmapCache {
     if (_cache) {
         return _cache;
     }
+
+    // キャッシュファイルがあれば読み込む
+    if (fs.existsSync(CACHE_PATH)) {
+        try {
+            const raw = fs.readFileSync(CACHE_PATH, 'utf-8');
+            const map = JSON.parse(raw) as SlugMap;
+            const slugs = new Set(Object.values(map));
+            _cache = { map, slugs };
+            return _cache;
+        } catch (error) {
+            console.error('Error reading cache file:', error);
+        }
+    }
     
     // wikiディレクトリをスキャン
     const wikiDir = path.resolve(process.cwd(), 'src/content/wiki');

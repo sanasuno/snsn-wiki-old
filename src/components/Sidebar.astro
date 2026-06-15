@@ -10,7 +10,7 @@
  */
 import { getCollection } from "astro:content";
 import { t, type Locale } from "@i18n/i18n.config";
-import { sidebarNavigation, autoAddUnknownCategories } from "@layouts/sidebar.config";
+import { sidebarNavigation, autoAddUnknownCategories, autoGroupByLeafCategory } from "@layouts/sidebar.config";
 import { removeTrailingSlash, getRoute, getBaseSlug } from "@scripts/utils";
 import { getCategoryFromId } from "@scripts/category";
 import { getUniquePagesByLocale } from "@scripts/pages";
@@ -47,11 +47,21 @@ const pages = Object.values(uniquePages);
 const byCategory: Record<string, typeof pages> = {};
 for (const page of pages) {
     const category: string[] = getCategoryFromId(page.id) || [];
-    const categoryKey = category.join('/');
-    if (!byCategory[categoryKey]) {
-        byCategory[categoryKey] = [];
+    if (autoGroupByLeafCategory && category.length > 0) {
+        // リーフカテゴリのみをグループ化
+        const leafCat = category[category.length - 1] ?? '';
+        if (!byCategory[leafCat]) {
+            byCategory[leafCat] = [];
+        }
+        byCategory[leafCat].push(page);
+    } else {
+        // すべてのカテゴリをグループ化
+        const categoryKey = category.join('/');
+        if (!byCategory[categoryKey]) {
+            byCategory[categoryKey] = [];
+        }
+        byCategory[categoryKey].push(page);
     }
-    byCategory[categoryKey].push(page);
 }
 
 

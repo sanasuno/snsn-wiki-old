@@ -28,8 +28,7 @@ const alternateLinks = locales.map((locale) => ({
 	url: getRelativeLocaleUrl(locale, '/'),
 }));
 
-const uniquePages = getUniquePagesByLocale(allPages, locale);
-const pages: typeof allPages = Object.values(uniquePages);
+const pages = getUniquePagesByLocale(allPages, locale);
 
 // 最近更新されたページを取得
 const recentPages = [...pages]

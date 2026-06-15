@@ -6,7 +6,7 @@
 import { getCollection } from 'astro:content';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MainLayout from '@layouts/MainLayout.astro';
-import { t, locales, translations, defaultLocale, formatDate, type Locale } from '@i18n/i18n.config';
+import { t, locales, formatDate, type Locale } from '@i18n/i18n.config';
 import { getRoute, removeTrailingSlash } from '@scripts/utils';
 import { getCategoryFromId } from '@scripts/category';
 import { getUniquePagesByLocale } from '@scripts/pages';
@@ -27,8 +27,7 @@ const alternateLinks = locales.map((locale) => ({
 	url: getRelativeLocaleUrl(locale, '/category'),
 }));
 
-const uniquePages = getUniquePagesByLocale(allPages, locale);
-const pages: typeof allPages = Object.values(uniquePages);
+const pages = getUniquePagesByLocale(allPages, locale);
 
 const categoryMap: Record<string, typeof pages> = {};
 for (const page of pages) {

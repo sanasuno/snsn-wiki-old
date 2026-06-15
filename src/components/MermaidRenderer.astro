@@ -6,7 +6,14 @@
 ---
 <script type="module">
     import mermaid from 'mermaid'
-    import { getTheme } from '@utils/theme'
+
+    // テーマを取得する
+    function getTheme() {
+        const t = document.documentElement.getAttribute('data-theme');
+        if (t === 'dark') return 'dark';
+        if (t === 'light') return 'default';
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default';
+    }
 
     // コードブロックからソースを抽出
     function extractSource(pre) {
@@ -19,6 +26,7 @@
 
     let counter = 0;
 
+    // すべてのMermaid図をレンダリングする
     async function renderAll() {
         mermaid.initialize({
             startOnLoad: false,
@@ -47,6 +55,7 @@
         }
     }
 
+    // Mermaid図をレンダリングする
     async function renderer() {
         mermaid.initialize({
             startOnLoad: false,
@@ -55,6 +64,7 @@
         });
         const diagrams = document.querySelectorAll('.mermaid');
         for (const diagram of diagrams) {
+            // データ属性からソースを取得する
             const source = diagram.dataset.mermaidSource;
             if (!source) continue;
             const id = `mermaid-${counter++}`;
@@ -72,7 +82,7 @@
     }
 
     renderAll();
-
+    // テーマ切り替え時にレンダリングする
     document.getElementById('theme-toggle')?.addEventListener('click', () => {
         setTimeout(renderer, 0);
     });

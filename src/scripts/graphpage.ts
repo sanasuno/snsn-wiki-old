@@ -115,7 +115,17 @@ async function main() {
     canvas.height = r.height;
   };
   setSize();
-  new ResizeObserver(() => { setSize(); sim?.force('center', d3.forceCenter(canvas.width/2, canvas.height/2)); draw(); }).observe(container);
+  const ro = new ResizeObserver(() => {
+    setSize(); 
+    sim?.force('center', d3.forceCenter(canvas.width/2, canvas.height/2)); 
+    draw(); 
+  });
+  ro.observe(container);
+
+  document.addEventListener('astro:before-swap', () => {
+    ro.disconnect(),
+    { once: true }
+  });
 
   // ノードの半径計算（リンク数に応じて大きくなる）
   const R = (n: GraphNode) => 7 + Math.min((n.linkCount || 0) * 1.5, 14);

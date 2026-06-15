@@ -42,6 +42,7 @@ export type NavigationSection = {
  * true にすると、明示されていない全カテゴリをサイドバー末尾に自動追加する
  */
 export const autoAddUnknownCategories = true;
+export const autoGroupByLeafCategory = true;
 
 export const sidebarNavigation: NavigationSection[] = [
     // -------- クイックリンク（手動） --------

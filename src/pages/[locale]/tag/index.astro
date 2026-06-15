@@ -29,8 +29,7 @@ const alternateLinks = locales.map((locale) => ({
 }));
 
 // ロケールごとの重複を削除したページを取得
-const uniquePages = getUniquePagesByLocale(allPages, locale);
-const pages: typeof allPages = Object.values(uniquePages);
+const pages = getUniquePagesByLocale(allPages, locale);
 // タグごとにページをグループ化
 const tagMap: Record<string, typeof pages> = {};
 for (const page of pages) {

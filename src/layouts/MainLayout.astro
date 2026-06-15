@@ -83,7 +83,9 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href;
         )}
         {
             alternateLinks.map((link) => (
-                <link rel="alternate" hreflang={link.locale} href={new URL(link.url, Astro.site).href} />
+                Astro.site && (
+                    <link rel="alternate" hreflang={link.locale} href={new URL(link.url, Astro.site).href} />
+                )
             ))
         }
         <!-- OGP -->
