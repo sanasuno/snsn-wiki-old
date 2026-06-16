@@ -8,22 +8,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseFrontmatter } from 'astro/markdown';
+import { slugify, toRealSlug, resolveSlug, type SlugMap } from './slugCore';
+import { parseNormalizedFrontmatter } from './frontmatterUtils';
 
-/**
- * ページ名をURLスラッグに変換する関数
- * URLエンコード対応
- * @param text ページ名
- * @returns URLスラッグ
- */
-export function slugify(text: string): string {
-    return text
-        .trim() // 先頭と末尾の空白を削除
-        .toLowerCase() // 小文字に変換
-        .replace(/[^\p{L}\p{N}\s-]/gu, '') // 特殊文字を削除
-        .replace(/[\s_-]+/g, '-') // スペースとアンダースコアをハイフンに置換
-        .replace(/--+/g, '-') // 連続するハイフンを1つに
-        .replace(/^-+|-+$/g, ''); // 先頭と末尾のハイフンを削除
-}
+export { slugify, toRealSlug, resolveSlug, type SlugMap };
 
 /**
  * ファイルパスからディレクトリ込みのスラッグを生成する関数
@@ -37,39 +25,6 @@ export function pathToSlug(filePath: string): string {
         .split('/') // パスを分割
         .map(part => slugify(part)) // 各部分をスラッグ化
         .join('/');
-}
-
-/**
- * フルスラッグから実スラッグ（ロケールプレフィックスなし）へ変換する関数
- * @param fullSlug 完全なスラッグ（例: ja/recipes/pasta）
- * @returns 実スラッグ（例: recipes/pasta）
- */
-export function toRealSlug(fullSlug: string): string {
-    const parts = fullSlug.split('/');
-
-    // ルートスラッグの場合は空文字を返す
-    if (parts.length < 2) {
-        return '';
-    }
-    // プレフィックスを削除して実スラッグを返す
-    return parts.slice(1).join('/');
-}
-
-/**
- * スラッグマップ型
- * 正規化テキスト → 実スラッグ
- */
-export type SlugMap = Record<string, string>;
-
-/**
- * テキストから実スラッグに解決する関数
- * @param text テキスト
- * @param map スラッグマップ
- * @returns 実スラッグ
- */
-export function resolveSlug(text: string, map: SlugMap): string {
-    const key = slugify(text);
-    return map[key] || text;
 }
 
 /**
@@ -103,31 +58,28 @@ export function scanWikiFiles(dir: string, slugs: Set<string>, prefix: string = 
 
             // frontmatter を簡易パース
             try {
-                const raw = fs.readFileSync(fullPath, 'utf-8').replace(/\r\n/g, '\n');
-                const parsed = parseFrontmatter(raw);
+                const raw = fs.readFileSync(fullPath, 'utf-8');
+                const { meta } = parseNormalizedFrontmatter(raw);
                 let isDraft = false;
                 let isHidden = false;
-                if (parsed) {
-                    // title があればスラッグマップに追加
-                    const titleMatch = parsed.frontmatter.title;
-                    if (titleMatch) {
-                        const title = titleMatch.trim();
-                        map[slugify(title)] = baseSlug;
-                    }
-                    // aliases（複数行形式）があればスラッグマップに追加
-                    const aliasLines = parsed.frontmatter.aliases;
-                    if (aliasLines) {
-                        for (const line of aliasLines) {
-                            const a = line.replace(/["']/g, '').trim();
-                            if (a) {
-                                map[slugify(a)] = baseSlug;
-                            }
+                // title があればスラッグマップに追加
+                const titleMatch = meta.title as string | undefined;
+                if (titleMatch) {
+                    map[slugify(titleMatch.trim())] = baseSlug;
+                }
+                // aliases（複数行形式）があればスラッグマップに追加
+                const aliasLines = meta.aliases as string[] | undefined;
+                if (aliasLines) {
+                    for (const line of aliasLines) {
+                        const a = line.replace(/["']/g, '').trim();
+                        if (a) {
+                            map[slugify(a)] = baseSlug;
                         }
                     }
-                    // draft と hidden の判定
-                    isDraft = parsed.frontmatter.draft === true;
-                    isHidden = parsed.frontmatter.hidden === true;
                 }
+                // draft と hidden の判定
+                isDraft = meta.draft === true;
+                isHidden = meta.hidden === true;
                 // publishOnly が true の場合、draft または hidden のページは除外
                 if (!publishOnly || (!isDraft && !isHidden)) {
                     slugs.add(baseSlug);
@@ -186,25 +138,46 @@ function getWikiLatestMtime(dir: string): number {
 }
 
 /**
+ * Wikiディレクトリ内のMD/MDXファイルの数を取得する関数
+ * @param dir Wikiディレクトリのパス
+ * @returns MD/MDXファイルの数
+ */
+function getWikiFileCount(dir: string): number {
+    let count = 0;
+    if (!fs.existsSync(dir)) return count;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            count += getWikiFileCount(fullPath);
+        } else if (/\.(md|mdx)$/.test(entry.name)) {
+            count++;
+        }
+    }
+    return count;
+}
+
+/**
  * キャッシュを構築する関数
  * @returns キャッシュ
  */
 function buildCache(): SlugmapCache {
     // キャッシュがあれば返す
-    if (_cache) {
-        return _cache;
-    }
-    // キャッシュの更新日時を取得
+    if (_cache) return _cache;
+    // キャッシュとWikiの更新日時を取得
     const cacheMtime = getCacheMtime();
-    // wikiディレクトリの最新更新日時を取得
     const wikiMtime = getWikiLatestMtime(WIKI_DIR);
     // キャッシュがwikiより新しい場合、キャッシュを返す
     if (cacheMtime > wikiMtime && fs.existsSync(CACHE_PATH)) {
         try {
             const raw = fs.readFileSync(CACHE_PATH, 'utf-8');
-            const { map, slugs: slugArr } = JSON.parse(raw) as { map: SlugMap; slugs: string[] };
-            _cache = { map, slugs: new Set(slugArr) };
-            return _cache;
+            const { map, slugs: slugArr, fileCount } = JSON.parse(raw) as { map: SlugMap; slugs: string[]; fileCount?: number };
+            const currentFileCount = getWikiFileCount(WIKI_DIR);
+            // ファイル数が変更されている場合は再構築
+            if (fileCount === undefined || fileCount === currentFileCount) {
+                _cache = { map, slugs: new Set(slugArr) };
+                console.log('File count has changed, rebuilding cache');
+                return _cache;
+            }
         } catch (error) {
             console.error('Error reading cache file:', error);
         }
@@ -248,6 +221,7 @@ function buildCache(): SlugmapCache {
         fs.writeFileSync(CACHE_PATH, JSON.stringify({
             map,
             slugs: [...slugs],
+            fileCount: getWikiFileCount(WIKI_DIR)
         }, null, 2));
     } catch (e) {
         console.error('Failed to create cache directory:', e);

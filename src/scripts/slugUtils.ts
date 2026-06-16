@@ -2,6 +2,8 @@
  * @scripts/slugUtils
  * 
  * スラッグ関連のユーティリティ関数
+ * 注意: src/lib/slugCore.ts の toRealSlug とは入力形式が異なる
+ * (こちらはURLパス文字列、slugCoreはコンテンツIDのフルスラッグを扱う)
  */
 
 /**

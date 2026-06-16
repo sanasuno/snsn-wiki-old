@@ -1,6 +1,9 @@
 /**
  * @scripts/graphColors
  * グラフの色を管理するモジュール
+ * 注意: ここの getIsDark のロジックは MainLayout.astro の
+ * <script is:inline> 内のテーマ初期化ロジックと同一の判定基準
+ * (data-theme属性 → OS設定)。片方を変更する際は両方確認すること。
  */
 
 /**

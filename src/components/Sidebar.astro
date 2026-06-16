@@ -9,7 +9,7 @@
  * @param {string} props.currentPath - 現在のパス
  */
 import { getCollection } from "astro:content";
-import { t, type Locale } from "@i18n/i18n.config";
+import { t, tDynamic, type Locale } from "@i18n/i18n.config";
 import { sidebarNavigation, autoAddUnknownCategories, autoGroupByLeafCategory } from "@layouts/sidebar.config";
 import { removeTrailingSlash, getRoute, getBaseSlug } from "@scripts/utils";
 import { getCategoryFromId } from "@scripts/category";
@@ -96,7 +96,7 @@ const sorters: Record<string, (a: WikiPage, b: WikiPage) => number> = {
     <nav aria-label={t("sidebar.navigation", locale)}>
         {sidebarNavigation.map(section => {
             const defaultCollapsed = section.collapsed ?? false;
-            const sectionTitle = t(`${section.titleKey}` as any, locale);
+            const sectionTitle = tDynamic("sidebar", section.titleKey, locale);
             const storageKey = `snsn-sidebar-${section.titleKey}`;
 
             if (section.items) {
@@ -111,7 +111,7 @@ const sorters: Record<string, (a: WikiPage, b: WikiPage) => number> = {
                         <div class={`sidebar-nav sidebar-collapsible${defaultCollapsed ? ' collapsed' : ''}`}>
                             {section.items.map(item => {
                                 let href = item.href;
-                                let label = item.i18nKey ? t(item.i18nKey as any, locale) : '';
+                                let label = item.i18nKey ? tDynamic("sidebar", item.i18nKey, locale) : '';
                                 // slugが指定されている場合、ページのルートを取得してhrefを更新
                                 if (item.slug) {
                                     const page = slugMap[removeTrailingSlash(item.slug)];
@@ -152,7 +152,7 @@ const sorters: Record<string, (a: WikiPage, b: WikiPage) => number> = {
                 if (categoryPages.length === 0) {
                     return null;
                 }
-                
+
                 // カテゴリを記録
                 renderedCategories.add(section.category);
                 
@@ -204,8 +204,8 @@ const sorters: Record<string, (a: WikiPage, b: WikiPage) => number> = {
                         <i class="fa-solid fa-folder fa-fw" />
                         {category === '' 
                             ? t('home.title', locale) 
-                            : (t(`category.${category}` as any, locale) !== `category.${category}` 
-                                ? t(`category.${category}` as any, locale) 
+                            : (tDynamic("category", category, locale) !== `category.${category}` 
+                                ? tDynamic("category", category, locale) 
                                 : category)}
                         <i class="fa-solid fa-chevron-down sidebar-chevron" />
                     </button>

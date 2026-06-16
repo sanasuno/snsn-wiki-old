@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseFrontmatter } from 'astro/markdown';
 import { locales, type Locale} from '../i18n/i18n.config';
+import { parseNormalizedFrontmatter } from '../lib/frontmatterUtils';
 
 // ----------------------------------------
 // 型定義
@@ -55,10 +56,10 @@ interface FrontMatter {
  */
 function parseFrontMatter(raw: string): { meta: FrontMatter; body: string } {
     // Windows 改行正規化してからパース
-    const parsed = parseFrontmatter(raw.replace(/\r\n/g, '\n'));
+    const { meta, body } = parseNormalizedFrontmatter(raw);
     return {
-        meta: (parsed?.frontmatter as FrontMatter) ?? {},
-        body: parsed?.content ?? raw
+        meta: (meta as FrontMatter) ?? {},
+        body
     };
 }
 

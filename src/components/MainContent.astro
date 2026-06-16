@@ -70,9 +70,12 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
         // ウィキページのパスからカテゴリを抽出
         // 例: /ja/wiki/tech/astro → ['tech', 'astro']
         const wikiPrefix = `${localeBaseUrl}/wiki`;
+        if (!path.startsWith(wikiPrefix)) {
+            console.warn(`Path ${path} does not start with ${wikiPrefix}`);
+        }
         const strippedPath = path.startsWith(wikiPrefix) 
             ? path.slice(wikiPrefix.length)
-            : path.slice(localeBaseUrl.length);
+            : path.slice(localeBaseUrl.length).replace(/^\/wiki/, '');
         const segments = strippedPath.split('/').filter(Boolean);
         // ルートからカテゴリまでのパンくずリストを構築
         const crumbs: Crumb[] = [

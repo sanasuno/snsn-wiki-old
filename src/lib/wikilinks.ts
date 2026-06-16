@@ -9,6 +9,8 @@ import { defaultLocale, type Locale } from '../i18n/i18n.config';
 import { isLocale } from '../scripts/i18n';
 import { slugify, buildSlugMapSync, buildPublishedSlugs, resolveSlug, type SlugMap } from './slugmap';
 
+const WIKILINK_PATTERN_SOURCE = '\\[\\[([^\\]|#]+)(?:#([^\\]|]*))?(?:\\|([^\\]]*))?\\]\\]';
+
 // ==============================
 // WikiLink 抽出（静的解析用）
 // ==============================
@@ -36,7 +38,7 @@ export function extractWikiLinks(
     
     // regexでマッチしたすべてのWikiリンクを処理
     let match: RegExpExecArray | null;
-    const PATTERN = /\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g; // [[Page Name]] や [[Page Name|表示名]] [[Page Name#section]] などのWikiリンク
+    const PATTERN = new RegExp(WIKILINK_PATTERN_SOURCE, 'g'); // [[Page Name]] や [[Page Name|表示名]] [[Page Name#section]] などのWikiリンク
     while ((match = PATTERN.exec(body)) !== null) {
         // ページ名からスラッグを取得
         const pageName = match[1].trim();
@@ -88,7 +90,7 @@ export function remarkWikiLinks(options: { base?: string } = {}) {
 
             // 関数内をキャプチャする
             // Wikiリンクパターンにマッチしない場合はスキップ
-            const PATTERN = /\[\[([^\]|#]+)(?:#([^\]|]*))?(?:\|([^\]]*))?\]\]/g;
+            const PATTERN = new RegExp(WIKILINK_PATTERN_SOURCE, 'g');
             const text: string = node.value;
             if (!PATTERN.test(text)) return;
             
