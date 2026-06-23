@@ -4,23 +4,9 @@
  */
 
 import * as d3 from 'd3';
-import { type Locale, defaultLocale } from '@i18n/i18n.config';
 import { savePreference, getPreference } from '@scripts/storage';
 import { makeColors } from '@scripts/graphColors';
-
-interface GraphNode extends d3.SimulationNodeDatum {
-  id: string;
-  label: string;
-  group: string;
-  linkCount?: number;
-  tags?: string[];
-  exists?: boolean;
-}
-
-interface GraphLink {
-  source: string | GraphNode;
-  target: string | GraphNode;
-}
+import type { GraphNode, GraphLink } from '@lib/graphTypes';
 
 const container = document.getElementById('graph-container'); // グラフコンテナ
 const localeBaseUrl = container?.dataset.localeBaseUrl ?? ''; // ロケールベースURL
@@ -130,6 +116,7 @@ async function main() {
   document.addEventListener('astro:before-swap', () => {
     ro.disconnect();
     themeObserver.disconnect();
+    sim.stop();
   }, { once: true });
 
   // ノードの半径計算（リンク数に応じて大きくなる）

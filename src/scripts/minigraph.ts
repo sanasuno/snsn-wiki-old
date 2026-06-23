@@ -33,6 +33,23 @@ interface Node {
   exists?: boolean;
 }
 
+let _graphDataCache: Promise<any> | null = null;
+
+function fetchGraphData(url: string): Promise<any> {
+  if (!_graphDataCache) {
+    _graphDataCache = fetch(url).then(r => {
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}`);
+      }
+      return r.json();
+    }).catch(e => {
+      _graphDataCache = null;
+      throw e;
+    });
+  }
+  return _graphDataCache;
+}
+
 // メイン関数
 async function initMiniGraph() {
   // 要素の取得と初期化
@@ -48,7 +65,7 @@ async function initMiniGraph() {
   // グラフデータの取得
   let allData;
   try {
-    const r = await fetch(graphApiUrl);
+    const r = await fetchGraphData(graphApiUrl);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     allData = await r.json();
   } catch (e: any) {

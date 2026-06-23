@@ -1,5 +1,5 @@
 /**
- * src/scripts/buildSearchIndex.ts
+ * @lib/buildSearchIndex.ts
  *
  * ビルド前に全WikiページのタイトルA+本文テキストを収集し、
  * ロケール別の検索インデックスJSONを public/ に出力するスクリプト。
@@ -14,20 +14,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseFrontmatter } from 'astro/markdown';
 import { locales, type Locale} from '../i18n/i18n.config';
-import { parseNormalizedFrontmatter } from '../lib/frontmatterUtils';
-
-// ----------------------------------------
-// 型定義
-// ----------------------------------------
-
-export interface SearchEntry {
-    url: string; // ページのURL（BASE_URLは含まない、先頭スラッシュあり）
-    title: string; // ページタイトル
-    excerpt: string; // 本文の先頭 ~300 文字（スニペット表示用）
-    body: string; // フルテキスト（検索対象）
-}
+import { parseNormalizedFrontmatter } from './frontmatterUtils';
+import type { SearchEntry } from '../scripts/search';
 
 // ----------------------------------------
 // 設定

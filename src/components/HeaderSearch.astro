@@ -223,6 +223,7 @@ const searchPageUrl = `${localeBaseUrl}/search`; // 検索ページのURL
 <script>
 import { highlight, extractSnippet, search } from '@scripts/search';
 import { t, defaultLocale, type Locale } from '@i18n/i18n.config';
+import type { SearchEntry } from '@scripts/search';
 
 const root       = document.getElementById('header-search-root')!; // ルート要素
 const input      = document.getElementById('header-search-input') as HTMLInputElement; // 検索入力ボックス
@@ -236,12 +237,6 @@ const DEBOUNCE_MS   = 120; // デバウンス時間
 const MAX_DROPDOWN  = 8; // 表示する最大候補数
 const CONTEXT_CHARS = 40; // コンテキスト文字数
 
-interface SearchEntry {
-    url: string;
-    title: string;
-    body: string;
-    excerpt: string;
-}
 let index: SearchEntry[] | null = null; // 検索インデックス
 let debounceTimer: ReturnType<typeof setTimeout> | null = null; // デバウンスタイマー
 let activeIdx = -1; // アクティブな候補のインデックス、-1 = なし、0 = 「すべての結果を見る」、1~ = 候補

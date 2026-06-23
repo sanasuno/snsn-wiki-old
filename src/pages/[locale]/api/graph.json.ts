@@ -9,47 +9,8 @@ import { locales, defaultLocale, type Locale} from '@i18n/i18n.config';
 import { extractWikiLinks } from "@lib/wikilinks";
 import { toRealSlug, buildSlugMapSync, buildPublishedSlugs } from "@lib/slugmap";
 import { isLocale } from "@scripts/i18n";
+import type { GraphNode, GraphLink, GraphData } from "@lib/graphTypes";
 
-/**
- * グラフノード
- * 
- * @property id スラッグ
- * @property label ページタイトル
- * @property tags タグ
- * @property group タグによるグループ色分け用
- * @property linkCount リンク数
- * @property exists ページが存在するか
- */
-export interface GraphNode {
-    id: string;
-    label: string;
-    tags: string[];
-    group: string;
-    linkCount: number;
-    exists: boolean;
-}
-
-/**
- * グラフリンク
- * 
- * @property source ソースページのスラッグ
- * @property target ターゲットページのスラッグ
- */
-export interface GraphLink {
-    source: string;
-    target: string;
-}
-
-/**
- * グラフデータ
- * 
- * @property nodes ノード
- * @property links リンク
- */
-export interface GraphData {
-    nodes: GraphNode[];
-    links: GraphLink[];
-}
 
 /**
  * タグからグループ識別子を返す関数

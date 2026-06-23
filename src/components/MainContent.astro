@@ -56,6 +56,17 @@ type Crumb = {
     categorySegment?: string | undefined; // カテゴリセグメント
 }
 
+function stripWikiPrefix(path: string, wikiPrefix: string, localeBaseUrl: string): string {
+    if (path.startsWith(wikiPrefix)) {
+        return path.substring(wikiPrefix.length);
+    }
+    const wikiIdx = path.indexOf('/wiki/');
+    if (wikiIdx !== -1) {
+        return path.slice(wikiIdx + '/wiki/'.length);
+    }
+    return path.slice(localeBaseUrl.length);
+}
+
 /**
  * パンくずリストを構築する
  * @param path パス
@@ -73,9 +84,7 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
         if (!path.startsWith(wikiPrefix)) {
             console.warn(`Path ${path} does not start with ${wikiPrefix}`);
         }
-        const strippedPath = path.startsWith(wikiPrefix) 
-            ? path.slice(wikiPrefix.length)
-            : path.slice(localeBaseUrl.length).replace(/^\/wiki/, '');
+        const strippedPath = stripWikiPrefix(path, wikiPrefix, localeBaseUrl);
         const segments = strippedPath.split('/').filter(Boolean);
         // ルートからカテゴリまでのパンくずリストを構築
         const crumbs: Crumb[] = [
@@ -101,9 +110,7 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
         // ページパスからカテゴリを抽出
         // 例: /ja/about → []
         // 例: /ja/services/web-design → ['services']
-        const strippedPath = path.startsWith(localeBaseUrl) 
-            ? path.slice(localeBaseUrl.length)
-            : path;
+        const strippedPath = stripWikiPrefix(path, localeBaseUrl, localeBaseUrl);
         const segments = strippedPath.split('/').filter(Boolean);
         // ルートからカテゴリまでのパンくずリストを構築
         const crumbs: Crumb[] = [{

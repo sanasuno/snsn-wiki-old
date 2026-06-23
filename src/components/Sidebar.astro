@@ -48,35 +48,14 @@ const allPages = await getCollection("wiki", (p) => !p.data.draft && !p.data.hid
 // カテゴリ別にページをグループ化
 const pages = getUniquePagesByLocale(allPages, locale);
 const byCategory: Record<string, typeof pages> = {};
-for (const page of pages) {
-    const category: string[] = getCategoryFromId(page.id) || [];
-    // autoGroupByLeafCategoryが有効かつカテゴリがある場合、リーフカテゴリのみをグループ化
-    if (autoGroupByLeafCategory && category.length > 0) {
-        // リーフカテゴリを取得
-        const leafCat = category[category.length - 1] ?? '';
-        // リーフカテゴリが存在しない場合は空文字列を使用
-        if (!byCategory[leafCat]) {
-            byCategory[leafCat] = [];
-        }
-        byCategory[leafCat].push(page);
-    } else {
-        // カテゴリがない場合またはautoGroupByLeafCategoryが無効な場合、すべてのカテゴリをグループ化
-        const categoryKey = category.join('/');
-        // カテゴリキーが存在しない場合は空配列を作成
-        if (!byCategory[categoryKey]) {
-            byCategory[categoryKey] = [];
-        }
-        byCategory[categoryKey].push(page);
-    }
-}
-
-
-// スラッグからページをマッピング
 const slugMap: Record<string, (typeof pages)[0]> = {};
 for (const page of pages) {
-    // ページIDからベーススラッグを取得
-    const baseSlug = getBaseSlug(page.id);
-    slugMap[baseSlug] = page;
+    slugMap[getBaseSlug(page.id)] = page;
+    const category: string[] = getCategoryFromId(page.id) || [];
+    const key = autoGroupByLeafCategory && category.length > 0
+        ? category[category.length - 1] 
+        : category.join('/');
+    (byCategory[key] ??= []).push(page);
 }
 
 // 既にレンダリングされたカテゴリを追跡するSet

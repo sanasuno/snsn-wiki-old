@@ -173,11 +173,11 @@ function buildCache(): SlugmapCache {
             const { map, slugs: slugArr, fileCount } = JSON.parse(raw) as { map: SlugMap; slugs: string[]; fileCount?: number };
             const currentFileCount = getWikiFileCount(WIKI_DIR);
             // ファイル数が変更されている場合は再構築
-            if (fileCount === undefined || fileCount === currentFileCount) {
+            if (fileCount !== undefined && fileCount === currentFileCount) {
                 _cache = { map, slugs: new Set(slugArr) };
-                console.log('File count has changed, rebuilding cache');
                 return _cache;
             }
+            console.log('File count has changed, rebuilding cache');
         } catch (error) {
             console.error('Error reading cache file:', error);
         }
