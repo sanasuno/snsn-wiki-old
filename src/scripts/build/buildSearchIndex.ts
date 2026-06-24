@@ -23,8 +23,8 @@ import type { SearchEntry } from '../search';
 // ----------------------------------------
 const BASE_PATH = (process.env.BASE_PATH || '').replace(/\/+$/, ''); // Base path (e.g., '/wiki')
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // 現在のスクリプトファイルのディレクトリパス
-const CONTENT_ROOT = path.resolve(__dirname, '../content/wiki'); // Wikiコンテンツのルートディレクトリ
-const PUBLIC_DIR   = path.resolve(__dirname, '../../public'); // publicディレクトリ
+const CONTENT_ROOT = path.resolve(__dirname, '../../content/wiki'); // Wikiコンテンツのルートディレクトリ
+const PUBLIC_DIR   = path.resolve(__dirname, '../../../public'); // publicディレクトリ
 
 
 // ----------------------------------------

@@ -268,10 +268,6 @@ async function initMiniGraph() {
       window.location.href = `${localeBaseUrl}/wiki/${n.id}`;
     }
   });
-
-  // テーマ変化時に再描画
-  new MutationObserver(() => draw())
-    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 }
 
 // 初期化
