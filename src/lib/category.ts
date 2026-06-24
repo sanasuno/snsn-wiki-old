@@ -10,7 +10,7 @@
  */
 export function getCategoryFromId(id: string): string[] {
     const parts = id.split('/');
-    // ページのIDは /{locale}/{category1}/{category2}/.../{slug} の形式であるため、2番目以降の要素がカテゴリとなる
+    // ページのIDは {locale}/{category1}/{category2}/.../{slug} の形式であるため、2番目以降の要素がカテゴリとなる
     if (parts.length > 2) {
         return parts.slice(1, -1);
     }

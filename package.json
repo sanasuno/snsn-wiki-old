@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "tsx src/scripts/build/buildSearchIndex.ts",
+    "prebuild": "tsx src/lib/build/buildSearchIndex.ts",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

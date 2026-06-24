@@ -112,12 +112,6 @@ async function main() {
     draw(); 
   });
   ro.observe(container);
-  // アストロページスイッチ時（ページ遷移時）にリソースを解放
-  document.addEventListener('astro:before-swap', () => {
-    ro.disconnect();
-    themeObserver.disconnect();
-    sim.stop();
-  }, { once: true });
 
   // ノードの半径計算（リンク数に応じて大きくなる）
   const R = (n: GraphNode) => 7 + Math.min((n.linkCount || 0) * 1.5, 14);
@@ -318,6 +312,7 @@ async function main() {
   document.addEventListener('astro:before-swap', () => {
     themeObserver.disconnect();
     ro.disconnect();
+    sim.stop();
   },
   { once: true });
 }

@@ -15,8 +15,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { locales, type Locale} from '../../i18n/i18n.config';
-import { parseNormalizedFrontmatter } from '../../lib/frontmatterUtils';
-import type { SearchEntry } from '../search';
+import { parseNormalizedFrontmatter } from '../frontmatterUtils';
+import type { SearchEntry } from '../../types/search';
 
 // ----------------------------------------
 // 設定

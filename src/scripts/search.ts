@@ -3,12 +3,9 @@
  * 検索・ハイライト関連のユーティリティ関数
  */
 
-export interface SearchEntry {
-    url: string;
-    title: string;
-    excerpt: string;
-    body: string;
-}
+import type { SearchEntry } from "@typeDefs/search";
+
+export type { SearchEntry };
 
 // ----------------------------------------
 // 検索・ハイライト
@@ -24,18 +21,10 @@ export function escapeRe(s: string): string {
 }
 
 /**
- * テキスト中のクエリをハイライトして返す（HTMLエスケープ込み）
- * @param escapedText HTMLエスケープされたテキスト
- * @param query 検索クエリ
- * @returns ハイライトされたテキスト
+ * HTMLエスケープを行う
+ * @param text エスケープするテキスト
+ * @returns エスケープされたテキスト
  */
-export function highlight(escapedText: string, query: string): string {
-    if (!query) return escapedText; // クエリがない場合はエスケープされたテキストを返す
-
-    const re = new RegExp(`(${escapeRe(query)})`, 'gi'); // クエリを正規表現でエスケープ
-    return escapedText.replace(re, '<mark>$1</mark>'); // マッチした部分をmarkタグで囲む
-}
-
 export function escapeHtml(text: string): string {
     return text
         .replace(/&/g, '&amp;')
@@ -45,6 +34,19 @@ export function escapeHtml(text: string): string {
 }
 
 /**
+ * テキスト中のクエリをハイライトして返す（HTMLエスケープ込み）
+ * @param escapedText HTMLエスケープされたテキスト
+ * @param query 検索クエリ
+ * @returns ハイライトされたテキスト
+ */
+export function highlight(rawText: string, query: string): string {
+    const escaped = escapeHtml(rawText);
+    if (!query) return escaped; // クエリがない場合はエスケープされたテキストを返す
+    const escapedQuery = escapeHtml(query);
+    const re = new RegExp(`(${escapeRe(escapedQuery)})`, 'gi'); // クエリを正規表現でエスケープ
+    return escaped.replace(re, '<mark>$1</mark>'); // マッチした部分をmarkタグで囲む
+}
+/**
  * 本文中でクエリが最初にヒットする周辺 CONTEXT_CHARS 文字を抽出
  * @param body 本文
  * @param query 検索クエリ
@@ -52,26 +54,24 @@ export function escapeHtml(text: string): string {
  * @returns 抽出されたテキスト
  */
 export function extractSnippet(body: string, query: string, contextChars: number = 40): string {
-    const safe = escapeHtml(body);
-    
     // クエリがない場合は先頭120文字を返す
-    if (!query) return safe.slice(0, 120);
+    if (!query) return body.slice(0, 120);
 
     // 本文を小文字に変換してからクエリの位置を取得
     const lc = body.toLowerCase();
     const pos = lc.indexOf(query.toLowerCase());
 
     // クエリが見つからない場合は先頭120文字を返す
-    if (pos === -1) return safe.slice(0, 120);
+    if (pos === -1) return body.slice(0, 120);
 
     // 開始位置と終了位置を計算
     const start = Math.max(0, pos - contextChars);
-    const end   = Math.min(safe.length, pos + query.length + contextChars);
+    const end   = Math.min(body.length, pos + query.length + contextChars);
 
     // スニペットを抽出し、省略されている場合は先頭または末尾に…を追加
-    let snippet = safe.slice(start, end);
+    let snippet = body.slice(start, end);
     if (start > 0) snippet = '…' + snippet;
-    if (end < safe.length) snippet += '…';
+    if (end < body.length) snippet += '…';
 
     return snippet;
 }

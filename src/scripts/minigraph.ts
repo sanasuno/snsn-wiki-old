@@ -116,8 +116,11 @@ async function initMiniGraph() {
   // サイズ設定
   const setSize = () => {
     const r = container.getBoundingClientRect();
-    canvas.width  = r.width;
-    canvas.height = r.height;
+    const w = Math.round(r.width);
+    const h = Math.round(r.height);
+    if (canvas.width === w && canvas.height === h) return;
+    canvas.width  = w;
+    canvas.height = h;
   };
   setSize();
 
