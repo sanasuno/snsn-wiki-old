@@ -1,8 +1,16 @@
 ---
 title: astro.config.ts
 description: astro.config.tsのソースコード解説
+tags:
+  - コード解説
 date: 2026-06-23
 ---
+## このファイルについて
+
+`astro.config.ts`は、Astroプロジェクト全体の設定ファイルです。
+本来、Astroではこのファイルに直接設定を記述する必要がありますが、snsn-wikiでは、設定すべき項目を別ファイルに記述し、それを読み込むことで、設定の可読性と保守性を向上させています。
+
+## インポート
 
 ``` ts
 import { defineConfig } from 'astro/config';
@@ -13,3 +21,32 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { remarkWikiLinks } from './src/lib/wikilinks';
 ```
+Astroでは [[tsconfig|tsconfig.json]] でエイリアスを設定できますが、`astro.config.ts` は `tsconfig.json` の影響を受けません。  
+このため、`astro.config.ts` では、インポートの際に相対パスで指定する必要があります。
+- `defineConfig` - Astro設定の型チェックと補完を提供するヘルパー関数です。
+- `locales` - 利用可能なロケール配列です。
+- `defaultLocale` - デフォルトロケールとして指定したロケールです。
+- `mdx` - MDXを利用できるようにするインテグレーションです。
+- `sitemap` - サイトマップを生成するインテグレーションです。
+- `remarkMath` - 数式を利用できるようにするRemarkプラグインです。
+- `rehypeKatex` - 数式を利用できるようにするRehypeプラグインです。
+- `remarkWikiLinks` - Wikiリンクを利用できるようにする独自のRemarkプラグインです。
+
+## SITE_URLの設定
+
+``` ts
+const DEFAULT_SITE_URL = 'http://localhost:4321'; // 開発時のデフォルト値
+let SITE_URL: string;
+try {
+  // .envファイルからSITE_URLを読み込み、ない場合はデフォルト値を使用してURLオブジェクトに変換する
+  SITE_URL = new URL(process.env.SITE_URL || DEFAULT_SITE_URL).toString();
+} catch {
+  // URLオブジェクトの生成に失敗した場合、エラーを投げる
+  throw new Error('[astro.config] SITE_URL must be a valid URL');
+}
+if (process.env.NODE_ENV !== 'development' && SITE_URL === DEFAULT_SITE_URL) {
+  // 開発環境以外でデフォルト値が使用された場合、エラーを投げる
+  throw new Error('[astro.config] SITE_URL must be configured in production');
+}
+```
+環境変数から `SITE_URL` を読み込み、ない場合はデフォルト値（`http://localhost:4321`）を使用してURLオブジェクトに変換します。

@@ -1,3 +1,7 @@
+/**
+ * astro.config.ts
+ * Astroの設定ファイル
+ */
 import { defineConfig } from 'astro/config';
 import { locales, defaultLocale } from './src/i18n/i18n.config';
 import mdx from '@astrojs/mdx';
