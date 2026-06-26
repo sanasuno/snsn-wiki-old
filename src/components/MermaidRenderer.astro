@@ -4,7 +4,7 @@
  * Mermaid図をレンダリングするコンポーネント
  */
 ---
-<script type="module">
+<script>
     import mermaid from 'mermaid'
 
     /**
@@ -23,13 +23,13 @@
      * @param {HTMLElement} pre - コードブロック要素
      * @returns {string} コードソース
      */
-    function extractSource(pre) {
+    function extractSource(pre: HTMLElement) {
         const lines = pre.querySelectorAll('.line');
         // .line要素が存在する場合、それらのテキストコンテンツを結合する
         if (lines.length > 0) {
             return Array.from(lines).map(l => l.textContent).join('\n');
         }
-        return pre.querySelectorAll('code')?.textContent ?? pre.textContent ?? '';
+        return (pre.querySelector('code') as HTMLElement)?.textContent ?? pre.textContent ?? '';
     }
 
     let counter = 0;
@@ -46,7 +46,7 @@
 
         const blocks = document.querySelectorAll('pre[data-lang="mermaid"]');
         for (const pre of blocks) {
-            const source = extractSource(pre);
+            const source = extractSource(pre as HTMLElement);
             const id = `mermaid-${counter++}`;
             try {
                 // Mermaid図をレンダリングする
@@ -60,7 +60,7 @@
                 // エラーが発生した場合、エラーメッセージを表示する
                 const msg = document.createElement('pre');
                 msg.className = 'mermaid-error';
-                msg.textContent = `Mermaid rendering failed: ${error.message}`;
+                msg.textContent = `Mermaid rendering failed: ${(error as Error).message}`;
                 pre.parentNode?.replaceChild(msg, pre);
                 console.error('Mermaid rendering failed:', error);
             }
@@ -79,7 +79,7 @@
         const diagrams = document.querySelectorAll('.mermaid');
         for (const diagram of diagrams) {
             // データ属性からソースを取得する
-            const source = diagram.dataset.mermaidSource;
+            const source = (diagram as HTMLElement).dataset.mermaidSource;
             if (!source) continue;
             const id = `mermaid-${counter++}`;
             try {
