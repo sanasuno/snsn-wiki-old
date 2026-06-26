@@ -8,7 +8,7 @@ import { getCollection } from "astro:content";
 import { locales, defaultLocale, type Locale} from '@i18n/i18n.config';
 import { extractWikiLinks } from "@lib/wikilinks";
 import { toRealSlug, buildSlugMapSync, buildPublishedSlugs } from "@lib/slugmap";
-import { isLocale } from "@scripts/i18n";
+import { isLocale } from "@lib/locale";
 import type { GraphNode, GraphLink, GraphData } from "@typeDefs/graph";
 
 

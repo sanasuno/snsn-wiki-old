@@ -237,6 +237,7 @@ const alternateLinks = locales.map((l) => ({
 <script>
 import { t, defaultLocale, type Locale } from "@i18n/i18n.config";
 import { highlight, extractSnippet, search } from '@scripts/search';
+import type { SearchEntry } from "@scripts/search";
 
 // define:vars を使わず data-* 属性から値を取得
 const root    = document.getElementById('search-root')!;
@@ -252,7 +253,6 @@ const results  = document.getElementById('sp-results')  as HTMLUListElement; // 
 const statusEl = document.getElementById('sp-status')   as HTMLParagraphElement; // ステータスメッセージ
 const clearBtn = document.getElementById('sp-clear')    as HTMLButtonElement; // クリアボタン
 
-interface SearchEntry { url: string; title: string; body: string; excerpt: string; }
 let index: SearchEntry[] | null = null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 

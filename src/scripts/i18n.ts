@@ -5,6 +5,9 @@
 
 import { translations, type Locale } from '../i18n/i18n.config';
 import { savePreference, getPreference } from './storage';
+import { isLocale } from '../lib/locale';
+
+export { isLocale };
 
 /**
  * Window インターフェースの拡張
@@ -17,15 +20,6 @@ declare global {
     interface Window {
         snsn?: SnsnWindow;
     }
-}
-
-/**
- * lang が Locale 型かどうかを判定
- * @param lang 対象の文字列
- * @returns Locale 型かどうか
- */
-export function isLocale(lang: string): lang is Locale {
-    return lang in translations;
 }
 
 /**

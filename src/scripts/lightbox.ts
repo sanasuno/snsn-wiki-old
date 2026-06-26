@@ -11,7 +11,7 @@ export function lightbox() {
     overlay.innerHTML = 
         '<button class="lightbox-close" aria-label="close"><i class="fa-solid fa-xmark" /></button>' + 
         '<div class="lightbox-inner">' + 
-        '<img class="lighbox-img" src="" alt="" />' + 
+        '<img class="lightbox-img" src="" alt="" />' + 
         '<p class="lightbox-caption"></p>' + 
         '</div>';
     document.body.appendChild(overlay);

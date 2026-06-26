@@ -5,7 +5,7 @@
 
 import * as d3 from 'd3';
 import { savePreference, getPreference } from '@scripts/storage';
-import { makeColors } from '@scripts/graphColors';
+import { makeColors } from '@scripts/graph/graphColors';
 import type { GraphNode, GraphLink } from '@typeDefs/graph';
 
 const container = document.getElementById('graph-container'); // グラフコンテナ
@@ -33,7 +33,7 @@ const TAG_COLORS = [
 
 // メイン処理
 async function main() {
-  const canvas    = document.getElementById('graph-canvas');
+  const canvas    = document.getElementById('graph-canvas')!;
   const loading   = document.getElementById('graph-loading');
   const tooltip   = document.getElementById('graph-tooltip');
   const ttTitle   = document.getElementById('graph-tooltip-title');
@@ -43,7 +43,7 @@ async function main() {
   // 要素の存在チェック
   if (!container || !canvas) return;
   if (!(canvas instanceof HTMLCanvasElement)) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   if (!ctx) return;
 
   // エラーメッセージ表示

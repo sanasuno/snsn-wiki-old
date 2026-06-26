@@ -5,7 +5,7 @@
 
 import * as d3 from 'd3';
 import { toBaseSlugFromPath } from '@scripts/slugUtils';
-import { makeColors } from '@scripts/graphColors';
+import { makeColors } from '@scripts/graph/graphColors';
 
 const container = document.getElementById('mini-graph-container');
 const currentPath = container?.dataset.currentPath ?? '';
@@ -33,33 +33,39 @@ interface Node {
   exists?: boolean;
 }
 
-let _graphDataCache: Promise<any> | null = null;
+const _graphDataCache = new Map<string, Promise<any>>();
 
+/**
+ * グラフデータを取得する
+ * @param url グラフデータのURL
+ * @returns グラフデータ
+ */
 function fetchGraphData(url: string): Promise<any> {
-  if (!_graphDataCache) {
-    _graphDataCache = fetch(url).then(r => {
+  if (!_graphDataCache.has(url)) {
+    const p = fetch(url).then(r => {
       if (!r.ok) {
         throw new Error(`HTTP ${r.status}`);
       }
       return r.json();
     }).catch(e => {
-      _graphDataCache = null;
+      _graphDataCache.delete(url);
       throw e;
     });
+    _graphDataCache.set(url, p);
   }
-  return _graphDataCache;
+  return _graphDataCache.get(url)!;
 }
 
 // メイン関数
 async function initMiniGraph() {
   // 要素の取得と初期化
-  const canvas    = document.getElementById('mini-graph-canvas');
-  const loading   = document.getElementById('mini-graph-loading');
+  const canvas    = document.getElementById('mini-graph-canvas')!;
+  const loading   = document.getElementById('mini-graph-loading')!;
   // コンテナまたはキャンバスが存在しない場合は終了
   if (!container || !canvas) return;
   if (!(canvas instanceof HTMLCanvasElement)) return;
   // コンテキストを取得し、存在しない場合は終了
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   if (!ctx) return;
 
   // グラフデータの取得

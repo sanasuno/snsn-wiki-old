@@ -81,7 +81,7 @@ function buildCrumbs(path: string, title: string, localeBaseUrl: string, isWikiP
         // ウィキページのパスからカテゴリを抽出
         // 例: /ja/wiki/tech/astro → ['tech', 'astro']
         const wikiPrefix = `${localeBaseUrl}/wiki`;
-        if (!path.startsWith(wikiPrefix)) {
+        if (!path.startsWith(wikiPrefix) && import.meta.env.DEV) {
             console.warn(`Path ${path} does not start with ${wikiPrefix}`);
         }
         const strippedPath = stripWikiPrefix(path, wikiPrefix, localeBaseUrl);

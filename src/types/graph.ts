@@ -10,6 +10,13 @@ export interface GraphNode {
     group: string;
     linkCount: number;
     exists: boolean;
+    x?: number;
+    y?: number;
+    vx?: number;
+    vy?: number;
+    fx?: number | null;
+    fy?: number | null;
+    index?: number;
 }
 
 export interface GraphLink {

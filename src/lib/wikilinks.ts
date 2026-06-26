@@ -6,7 +6,7 @@ import { visit, SKIP } from 'unist-util-visit';
 import type { Root} from 'mdast';
 import type { VFile } from 'vfile'
 import { defaultLocale, type Locale } from '../i18n/i18n.config';
-import { isLocale } from '../scripts/i18n';
+import { isLocale } from './locale';
 import { slugify, buildSlugMapSync, buildPublishedSlugs, resolveSlug, type SlugMap } from './slugmap';
 
 const WIKILINK_PATTERN_SOURCE = '\\[\\[([^\\]|#]+)(?:#([^\\]|]*))?(?:\\|([^\\]]*))?\\]\\]';
