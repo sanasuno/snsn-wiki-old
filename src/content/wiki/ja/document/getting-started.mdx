@@ -115,3 +115,32 @@ src/content/wiki/
     - `SITE_URL` : `https://usernname.github.io`
     - `BASE_PATH` : `/repo-name`
 4. `main` ブランチにpushすると自動デプロイされます。
+
+## 数式
+
+インライン数式: $E = mc^2$
+
+ブロック数式:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+
+## Mermaid ダイアグラム
+
+```mermaid
+graph TD
+    A[Start] --> B{Condition}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[End]
+    D --> E
+```
+
+```mermaid
+sequenceDiagram
+    Editor->>+codex: ファイル保存
+    codex->>+Astro: ビルドトリガー
+    Astro-->>-codex: 静的HTML生成
+    codex-->>-Editor: プレビュー更新
+```
