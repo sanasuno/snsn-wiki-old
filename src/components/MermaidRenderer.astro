@@ -44,7 +44,7 @@
             securityLevel: 'loose'
         });
 
-        const blocks = document.querySelectorAll('pre[data-lang="mermaid"]');
+        const blocks = document.querySelectorAll('pre[data-language="mermaid"]');
         for (const pre of blocks) {
             const source = extractSource(pre as HTMLElement);
             const id = `mermaid-${counter++}`;
