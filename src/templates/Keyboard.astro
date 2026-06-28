@@ -1,0 +1,30 @@
+---
+interface Props {
+    keys: string
+}
+const { keys = ''} = Astro.props
+const keyList = keys.split('+').map(key => key.trim()).filter(Boolean)
+---
+{keyList.map((key, i) => (
+    <>
+        <kbd>{key}</kbd>
+        {i < keyList.length - 1 && <span class="kbd-sep">+</span>}
+    </>
+))}
+
+<style>
+    kbd {
+        display: inline-block;
+        padding: 2px 7px;
+        font-family: var(--font-mono);
+        font-size: 0.8em;
+        background-color: var(--color-bg-secondary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+    }
+    .kbd-sep {
+        margin: 0 4px;
+        color: var(--color-text-subtle);
+    }
+</style>

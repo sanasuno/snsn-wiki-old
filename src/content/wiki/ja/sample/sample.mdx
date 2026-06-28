@@ -7,19 +7,206 @@ tags:
 aliases:
   - サンプル
 ---
+import Note from '@templates/Note.astro';
+import Tip from '@templates/Tip.astro';
+import Warning from '@templates/Warning.astro';
+import Danger from '@templates/Danger.astro';
+import Badge from '@templates/Badge.astro';
+import Details from '@templates/Details.astro';
+import Tooltip from '@templates/Tooltip.astro';
+import ControllerButton from '@templates/ControllerButton.astro';
+import Keyboard from '@templates/Keyboard.astro';
+import Columns from '@templates/Columns.astro';
+import Col from '@templates/Col.astro';
+import Infobox from '@templates/Infobox.astro';
 
-## サンプルページ
+このページは **snsn-codex の基本機能** をひととおり使うサンプルです。  
+各セクションをコピー＆ペーストして、自分のページのベースにしてください。
 
-これはサンプルページです。
+---
 
+## コールアウト（ボックス系）
 
-## サンプルページ
+### note — ノート
 
-これはサンプルページです。
+```mdx
+<Note>ここに内容を書きます。</Note>
+```
 
-[[test]]
-[[テスト]]
-[[sample]]
-[[404]]
-[[no|page]]
-https://sanasuno.github.io/
+<Note>これはノートボックスです。補足説明などに使います。</Note>
+
+### tip — ヒント
+
+```mdx
+<Tip>ヒントの内容</Tip>
+```
+
+<Tip>これはヒントボックスです。おすすめの使い方などに使います。</Tip>
+
+### warning — 警告
+
+```mdx
+<Warning>注意事項</Warning>
+```
+
+<Warning>これは警告ボックスです。注意が必要な情報を記載します。</Warning>
+
+### danger — 危険
+
+```mdx
+<Danger>重大な警告</Danger>
+```
+
+<Danger>これは危険ボックスです。不可逆な操作や重大なリスクに使います。</Danger>
+
+---
+
+## badge — バッジ
+
+インラインで小さなラベルを表示します。
+
+```mdx
+<Badge label="ラベル" color="blue" />
+```
+
+色: `blue` `green` `red` `yellow` `gray` `purple`
+
+<Badge label="blue" color="blue" /> <Badge label="green" color="green" /> <Badge label="red" color="red" /> <Badge label="yellow" color="yellow" /> <Badge label="gray" color="gray" /> <Badge label="purple" color="purple" />
+
+---
+
+## details — 折りたたみ
+
+```mdx
+<Details summary="クリックして展開">
+ここに詳細な内容が入ります。
+</Details>
+```
+
+<Details summary="クリックして展開">
+ここに詳細な内容が入ります。長い補足説明や折りたたんでおきたい内容に便利です。
+</Details>
+
+---
+
+## tooltip — ツールチップ
+
+`term` に表示テキスト、`desc` に説明文を渡します。`desc` を省略すると `/data/tooltips.json` から自動解決します。
+
+```mdx
+<Tooltip term="WikiLink" desc="ページ名を二重角括弧で囲んで作るページ間リンク。" />
+<Tooltip term="frontmatter" />
+```
+
+<Tooltip term="WikiLink" desc="ページ名を二重角括弧で囲んで作るページ間リンク。" />
+<Tooltip term="frontmatter" />
+
+---
+
+## ref・fn — 脚注
+
+本文中に参照番号を挿入し、ページ末尾に注釈を置きます。
+
+```mdx
+本文中<Ref id="1" />にここで参照番号が付きます。
+
+<Fn id="1">これが脚注の内容です。</Fn>
+```
+
+本文中<Ref id="1" />にここで参照番号が付きます。
+
+---
+
+## ControllerButton — コントローラーボタン
+
+ゲームコントローラーのボタンをアイコン表示します。対応プラットフォーム: `PS` / `XB` / `NS`
+
+```mdx
+<ControllerButton platform="PS" button="×" /> を押してジャンプ
+<ControllerButton platform="XB" button="A" /> で決定
+<ControllerButton platform="NS" button="A" /> で確定
+```
+
+<ControllerButton platform="PS" button="×" /> を押してジャンプ  
+<ControllerButton platform="XB" button="A" /> で決定  
+<ControllerButton platform="NS" button="A" /> で確定
+
+---
+
+## Keyboard — キーボードショートカット
+
+`+` 区切りで複数のキーを並べられます。
+
+```mdx
+<Keyboard keys="Ctrl+C" /> でコピー、<Keyboard keys="Ctrl+V" /> でペースト
+```
+
+<Keyboard keys="Ctrl+C" /> でコピー、<Keyboard keys="Ctrl+V" /> でペースト
+
+---
+
+## infobox — 情報ボックス
+
+キーと値のペアで情報をまとめる右寄せのボックスです。`fields` に `{label, value}` の配列を渡します。
+
+```mdx
+<Infobox
+  title="タイトル"
+  fields={[
+    { label: "フィールド1", value: "値1" },
+    { label: "フィールド2", value: "値2" },
+  ]}
+/>
+```
+
+<Infobox
+  title="サンプル項目"
+  fields={[
+    { label: "種類",   value: "サンプル" },
+    { label: "作成日", value: "2026年6月" },
+    { label: "状態",   value: "公開中" },
+  ]}
+/>
+
+---
+
+## columns — 複数カラム
+
+`<Columns>` の中に `<Col>` を並べます。
+
+```mdx
+<Columns>
+<Col>
+
+左カラムの内容。Markdown が使えます。
+
+</Col>
+<Col>
+
+右カラムの内容。
+
+</Col>
+</Columns>
+```
+
+<Columns>
+<Col>
+
+**左カラム**
+
+snsn-wiki は Astro 製のパーソナル Wiki です。  
+Markdown を書くだけでページが生成されます。
+
+</Col>
+<Col>
+
+**右カラム**
+
+- WikiLink
+- グラフビュー
+- 全文検索
+
+</Col>
+</Columns>
+
+---

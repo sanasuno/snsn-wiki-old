@@ -1,0 +1,61 @@
+---
+interface Props {
+    type: 'note' | 'warning' | 'tip' | 'danger'
+}
+const { type } = Astro.props
+
+const icons: Record<Props['type'], string> = {
+    note: 'fa-solid fa-circle-info',
+    warning: 'fa-solid fa-triangle-exclamation',
+    tip: 'fa-solid fa-lightbulb',
+    danger: 'fa-solid fa-circle-exclamation'
+}
+---
+<div class={`callout callout-${type}`}>
+    <i class={icons[type]}></i>
+    <slot />
+</div>
+<style>
+    .callout {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        margin: 1.25em 0;
+        border-radius: 0.5rem;
+        gap: 4px;
+    }
+    .callout-note {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+    }
+    .callout-warning {
+        background-color: #fff3e0;
+        border-left: 4px solid #ff9800;
+    }
+    .callout-tip {
+        background-color: #e8f5e9;
+        border-left: 4px solid #4caf50;
+    }
+    .callout-danger {
+        background-color: #ffebee;
+        border-left: 4px solid #f44336;
+    }
+    :root[data-theme="dark"] {
+        .callout-note {
+            background-color: #1a237e;
+            border-left: 4px solid #2196f3;
+        }
+        .callout-warning {
+            background-color: #7f6000;
+            border-left: 4px solid #ff9800;
+        }
+        .callout-tip {
+            background-color: #1b5e20;
+            border-left: 4px solid #4caf50;
+        }
+        .callout-danger {
+            background-color: #7f1d1d;
+            border-left: 4px solid #f44336;
+        }
+    }
+</style>

@@ -8,11 +8,13 @@
       "@api/*": ["./src/api/*"],
       "@components/*": ["./src/components/*"],
       "@content/*": ["./src/content/*"],
+      "@data/*": ["./src/data/*"],
       "@i18n/*": ["./src/i18n/*"],
       "@layouts/*": ["./src/layouts/*"],
       "@lib/*": ["./src/lib/*"],
       "@scripts/*": ["./src/scripts/*"],
       "@styles/*": ["./src/styles/*"],
+      "@templates/*": ["./src/templates/*"],
       "@typeDefs/*": ["./src/types/*"]
     }
   }

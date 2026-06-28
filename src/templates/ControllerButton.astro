@@ -1,0 +1,103 @@
+---
+interface Props {
+    platform: 'PS' | 'XB' | 'NS'
+    button: string
+}
+const { platform, button } = Astro.props
+
+type ButtonDef = {
+    symbol: string
+    color: string
+    shape: 'circle' | 'pill'
+}
+
+const CONTROLLER_BTNS: Record<string, Record<string, ButtonDef>> = {
+    PS: {
+        '×': { symbol: '✕', color: '#5b8ccc', shape: 'circle' },
+        '○': { symbol: '○', color: '#cc5b5b', shape: 'circle' },
+        '□': { symbol: '□', color: '#cc5bac', shape: 'circle' },
+        '△': { symbol: '△', color: '#5bcc8c', shape: 'circle' },
+        'L1': { symbol: 'L1', color: '#555', shape: 'pill' },
+        'L2': { symbol: 'L2', color: '#555', shape: 'pill' },
+        'R1': { symbol: 'R1', color: '#555', shape: 'pill' },
+        'R2': { symbol: 'R2', color: '#555', shape: 'pill' },
+        'L3': { symbol: 'L3', color: '#555', shape: 'circle' },
+        'R3': { symbol: 'R3', color: '#555', shape: 'circle' },
+        '↑': { symbol: '↑', color: '#777', shape: 'circle' },
+        '↓': { symbol: '↓', color: '#777', shape: 'circle' },
+        '←': { symbol: '←', color: '#777', shape: 'circle' },
+        '→': { symbol: '→', color: '#777', shape: 'circle' },
+    },
+    XB: {
+        'A': { symbol: 'A', color: '#5b9e5b', shape: 'circle' },
+        'B': { symbol: 'B', color: '#cc5b5b', shape: 'circle' },
+        'X': { symbol: 'X', color: '#5b7fcc', shape: 'circle' },
+        'Y': { symbol: 'Y', color: '#ccac5b', shape: 'circle' },
+        'LB': { symbol: 'LB', color: '#555', shape: 'pill' },
+        'LT': { symbol: 'LT', color: '#555', shape: 'pill' },
+        'RB': { symbol: 'RB', color: '#555', shape: 'pill' },
+        'RT': { symbol: 'RT', color: '#555', shape: 'pill' },
+    },
+    NS: {
+        'A': { symbol: 'A', color: '#cc5b5b', shape: 'circle' },
+        'B': { symbol: 'B', color: '#ccac5b', shape: 'circle' },
+        'X': { symbol: 'X', color: '#5b7fcc', shape: 'circle' },
+        'Y': { symbol: 'Y', color: '#5b9e5b', shape: 'circle' },
+        'L': { symbol: 'L', color: '#555', shape: 'pill' },
+        'R': { symbol: 'R', color: '#555', shape: 'pill' },
+        'ZL': { symbol: 'ZL', color: '#555', shape: 'pill' },
+        'ZR': { symbol: 'ZR', color: '#555', shape: 'pill' },
+        '+': { symbol: '+', color: '#555', shape: 'circle' },
+        '-': { symbol: '−', color: '#555', shape: 'circle' },
+    },
+};
+
+const def = CONTROLLER_BTNS[platform.toUpperCase()]?.[button];
+---
+{def
+    ? (
+        <span
+            class={`ctrl-btn ${def.shape === 'pill' ? 'ctrl-btn-pill' : 'ctrl-btn-circle'}`}
+            style={`--btn-color:${def.color}`}
+            title={`${platform} ${button}`}
+        >
+            {def.symbol}
+        </span>
+    ) : (
+        <kbd class="ctrl-btn ctrl-btn-generic">
+            {platform}
+            {button}
+        </kbd>
+    )
+}
+<style>
+    .ctrl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        vertical-align: middle;
+        background-color: var(--btn-color, #555);
+        color: #fff;
+        font-family: var(--font-sans);
+    }
+    .ctrl-btn-circle {
+        width: 1.6em;
+        height: 1.6em;
+        border-radius: 50%;
+    }
+    .ctrl-btn-pill {
+        padding: 0.15em 0.5em;
+        border-radius: 999px;
+    }
+    .ctrl-btn-generic {
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        background-color: var(--color-bg-secondary);
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+    }
+</style>

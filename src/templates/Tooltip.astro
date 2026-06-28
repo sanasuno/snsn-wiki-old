@@ -1,0 +1,92 @@
+---
+interface Props {
+    term: string
+    desc?: string
+}
+const { term, desc } = Astro.props
+---
+{desc
+    ? (
+        <span class="tooltip" data-tooltip={desc}>
+            {term}
+            <span class="tooltip-popup">
+                {desc}
+            </span>
+        </span>
+    ) : (
+        <span class="tooltip tooltip-auto" data-tooltip-key={term}>
+            {term}
+            <span class="tooltip-popup"></span>
+        </span>
+    )
+}
+<style>
+    .tooltip {
+        position: relative;
+        cursor: help;
+        border-bottom: 1px dotted var(--color-accent);
+        color: inherit;
+    }
+    .tooltip-popup {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: 280px;
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: var(--color-text);
+        box-shadow: var(--shadow-lg);
+        z-index: 300;
+        white-space: normal;
+        pointer-events: none;
+    }
+    .tooltip-popup::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: var(--color-border);
+    }
+    .tooltip:hover .tooltip-popup {
+        display: block;
+    }
+</style>
+
+<script>
+    import { removeTrailingSlash } from "@scripts/utils";
+    document.addEventListener('DOMContentLoaded', function() {
+        (function() {
+            var autoTips = document.querySelectorAll('.tooltip-auto');
+            if (autoTips.length === 0) return;
+            const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+            fetch(baseUrl + '/data/tooltips.json')
+                .then(function(response) {
+                    return response.ok
+                        ? response.json()
+                        : {};
+                })
+                .then(function(data: Record<string, string>) {
+                    autoTips.forEach(function(tip) {
+                        var key = tip.getAttribute('data-tooltip-key') || '';
+                        var desc = data[key] || '';
+                        var popup = tip.querySelector('.tooltip-popup');
+                        if (desc && popup) {
+                            popup.textContent = desc;
+                        }
+                    });
+                })
+                .catch(function() {
+                    // noop
+                });
+        })();
+    });
+</script>

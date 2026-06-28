@@ -1,0 +1,133 @@
+---
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+interface Field {
+    label: string
+    value: string
+}
+interface InfoboxData {
+    title?: string
+    image?: string
+    body?: string
+    fields?: Field[]
+}
+
+interface Props {
+    src?: string // JSONから読む場合
+    id?: string // 配列から特定の要素を読み込む場合
+    title?: string // 直接指定する場合
+    image?: string
+    fields?: Field[]
+}
+const { src, id, ...direct } = Astro.props as Props;
+
+let data: InfoboxData = {}
+
+// キャッシュを使用したJSON読み込み
+const jsonCache = new Map<string, any>();
+function loadJson(src: string): any {
+    if (jsonCache.has(src)) {
+        return jsonCache.get(src);
+    }
+    const jsonPath = resolve(process.cwd(), `src/data/${src}.json`)
+    if (!existsSync(jsonPath)) {
+        throw new Error(`JSON file not found: ${jsonPath}`);
+    }
+    const jsonData = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    jsonCache.set(src, jsonData);
+    return jsonData;
+}
+
+if (src) {
+    const jsonData = loadJson(src)
+    if (jsonData) {
+        if (Array.isArray(jsonData) && id) {
+            const found = jsonData.find(item => item.id === id)
+            if (found) {
+                data = {
+                    title: found.name,
+                    fields: Object.entries(found)
+                        .filter(([key]) => key !== 'id' && key !== 'name')
+                        .map(([label, value]) => ({
+                            label,
+                            value: String(value)
+                        }))
+                }
+            } else {
+                data = { title: `Not found: id=${id} in ${src}.json` }
+            }
+        } else {
+            data = jsonData
+        }
+    } else {
+        data = { title: `Invalid data: ${src}.json` }
+    }
+}
+
+const title = direct.title ?? data.title ?? ''
+const image = direct.image ?? data.image ?? ''
+const fields = direct.fields ?? data.fields ?? []
+const body = data.body
+---
+<aside class="infobox">
+    {image && <img src={image} alt={title ?? ''} class="infobox-image" />}
+    {title && <h3 class="infobox-title">{title}</h3>}
+    {Astro.slots.has('default')
+        ? <div class="infobox-body"><slot /></div>
+        : body && <div class="infobox-body">{body}</div>
+    }
+    {fields && fields.map(({ label, value }) => (
+        <div class="infobox-field">
+            <dt class="infobox-field-label">{label}</dt>
+            <dd class="infobox-field-value">{value}</dd>
+        </div>
+    ))}
+</aside>
+<style>
+    .infobox {
+        display: block;
+        float: right;
+        clear: right;
+        width: 240px;
+        margin: 0 0 16px 24px;
+        padding: 16px;
+        background-color: var(--color-bg-secondary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+    }
+    
+    .infobox-image {
+        width: 100%;
+        height: auto;
+        margin-bottom: 12px;
+        border-radius: var(--radius-sm);
+    }
+    .infobox-title {
+        display: flex;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0 0 8px !important;
+    }
+    .infobox-body {
+        color: var(--color-text-muted);
+        margin: 0 0 8px;
+    }
+    .infobox-field {
+        display: flex;
+        gap: 8px;
+        border-top: 1px solid var(--color-border);
+        padding: 4px 0;
+    }
+    .infobox-field-label {
+        font-weight: 600;
+        min-width: 80px;
+        color: var(--color-text-muted);
+    }
+    .infobox-field-value {
+        margin: 0;
+        color: var(--color-text);
+    }
+</style>

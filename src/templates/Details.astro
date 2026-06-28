@@ -1,0 +1,31 @@
+---
+interface Props {
+    summary?: string
+    open?: boolean
+}
+const { summary, open = false } = Astro.props
+---
+<details {open}>
+    <summary>{summary}</summary>
+    <div class="details-content"><slot /></div>
+</details>
+<style>
+    details {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        margin: 1.25em 0;
+    }
+    summary {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 8px 12px;
+        background-color: var(--color-bg-secondary);
+    }
+    summary:hover {
+        background-color: var(--color-bg-hover);
+    }
+    .details-content {
+        margin: 0;
+        padding: 0 12px;
+    }
+</style>

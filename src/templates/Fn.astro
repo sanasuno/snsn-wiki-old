@@ -1,0 +1,26 @@
+---
+interface Props {
+    id: string
+}
+const { id } = Astro.props
+---
+<div class="footnote-item" id={`fn-${id}`}>
+    <span class="footnote-numner">[{id}]</span>
+    <span class="footnote-text">
+        <slot />
+        <a href={`#fnref-${id}`} class="footnote-back" />
+    </span>
+</div>
+<style>
+    .footnote-item {
+        scroll-margin-top: calc(var(--header-height) + 24px);
+        transition: background 0.3s;
+    }
+    .footnote-item.fn-highlight {
+        background-color: var(--color-accent-light);
+        border-radius: var(--radius-sm);
+    }
+</style>
+<script>
+    
+</script>
