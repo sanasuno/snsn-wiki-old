@@ -14,11 +14,11 @@ export type FilterDef = {
     split?: string
 }
 
-export type TransformDef = 
-    | { type: 'stars'; max?: number}
+export type TransformDef =
+    | { type: 'stars'; max?: number }
     | { type: 'badge'; colors?: Record<string, { bg: string; color: string }> }
     | { type: 'tags'; split?: string }
-    | { type: 'link'; hrefField?: string; basePath?: string}
+    | { type: 'link'; hrefField?: string; basePath?: string }
 
 export type TableConfig = {
     columns: ColumnDef[]
@@ -54,14 +54,15 @@ export function transformCell(
         const s = val == null ? '' : String(val);
         return { display: escapeHtml(s), raw: s };
     }
-    
-    switch(t.type) {
+
+    switch (t.type) {
         case 'stars': {
             const n = parseInt(val, 10);
             const max = t.max ?? 5;
+            const filled = Math.max(0, Math.min(Number.isNaN(n) ? 0 : n, max));
             return {
-                display: `<span style="color: #f59e0b; letter-spacing: 1px;">${'★'.repeat(n)}${'☆'.repeat(max - n)}</span>`,
-                raw: String(n)
+                display: `<span style="color: #f59e0b; letter-spacing: 1px;">${'★'.repeat(filled)}${'☆'.repeat(max - filled)}</span>`,
+                raw: String(Number.isNaN(n) ? 0 : n)
             }
         }
         case 'badge': {
@@ -79,14 +80,14 @@ export function transformCell(
             const tags: string[] = Array.isArray(val)
                 ? val
                 : String(val ?? '')
-                    .split(',')
-                    .map((v:string) => v.trim())
+                    .split(t.split ?? ',')
+                    .map((v: string) => v.trim())
                     .filter(Boolean)
             return {
                 display: tags.map(tag =>
                     `<span style="display: inline-block; padding: 1px 7px; border: 1px solid var(--color-border); border-radius: 999px; font-size: 0.7rem; font-weight: 600; background: var(--color-bg-secondary); color: var(--color-text); margin: 1px;">${escapeHtml(tag)}</span>`
                 ).join(' '),
-                raw: tags.join(', ')
+                raw: tags.join(t.split ?? ', ')
             }
         }
         case 'link': {
@@ -100,7 +101,7 @@ export function transformCell(
                 : `${base}/wiki/${src}/${slug}`
             return {
                 display: `<a href="${escapeHtml(href)}" style="font-weight: 600; color: var(--color-link); text-decoration: none;">${escapeHtml(label)}</a>`,
-                raw: href
+                raw: label
             }
         }
         default: {
