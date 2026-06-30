@@ -1,0 +1,374 @@
+---
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { transformCell } from './ts/datatable';
+import type { ColumnDef, FilterDef, TableConfig } from './ts/datatable';
+import { table } from 'node:console';
+
+interface Props {
+    src: string
+    id?: string
+}
+const { src, id } = Astro.props;
+
+const tableId = id ?? `dt-${src}`;
+const baseUrl = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+const dataDir = resolve(process.cwd(), 'src/data');
+
+const dataPath = resolve(dataDir, `${src}.json`);
+const configPath = resolve(dataDir, `${src}-table.json`);
+
+const missing = !existsSync(dataPath)
+    ? `${src}.json`
+    : !existsSync(configPath)
+        ? `${src}-table.json`
+        : null;
+
+let rows: Record<string, any>[] = [];
+let config: TableConfig = { columns: [] };
+if (!missing) {
+    rows = JSON.parse(readFileSync(dataPath, 'utf-8'));
+    config = JSON.parse(readFileSync(configPath, 'utf-8'));
+}
+
+const columns: ColumnDef[] = config.columns ?? []
+const filters: FilterDef[] = config.filters ?? []
+const defaultSort = config.defaultSort ?? columns[0]?.key ?? ''
+const defaultAsc = config.defaultAsc ?? true
+const transform = config.transform ?? {}
+
+const sortedRows = [...rows].sort((a, b) => {
+    const av = a[defaultSort] != null ? String(a[defaultSort]) : '';
+    const bv = b[defaultSort] != null ? String(b[defaultSort]) : '';
+    const n = Number(av) - Number(bv);
+    const cmp = isNaN(n) ? av.localeCompare(bv) : n;
+    return defaultAsc ? cmp : -cmp;
+})
+
+const filterOptions: Record<string, string[]> = {}
+for (const f of filters) {
+    const vals = new Set<string>()
+    for (const row of rows) {
+        const raw = row[f.key]
+        const str = Array.isArray(raw)
+            ? raw.join(f.split ?? ', ')
+            : raw === null ? '' : String(raw)
+        if (f.split) {
+            str.split(f.split).forEach((v: string) => {
+                if (v.trim()) {
+                    vals.add(v.trim())
+                }
+            })
+        } else {
+            if (str) {
+                vals.add(str)
+            }
+        }
+    }
+    filterOptions[f.key] = [...vals].sort((a, b) => a.localeCompare(b))
+}
+
+const processedRows = sortedRows.map(row => ({
+    cells: columns.map(col => transformCell(col.key, row, transform, src, baseUrl)),
+}));
+
+const filtersJson = JSON.stringify(filters);
+const columnsJson = JSON.stringify(columns.map(c => ({ key: c.key, label: c.label })));
+---
+{missing
+    ? <span class="datatable-error">Datatable: {missing} not found</span>
+    : (
+        <div class="st-wrapper" id={`${tableId}-wrapper`}>
+            {filters.length > 0 && (
+                <div class="filter-bar" id={`${tableId}-filterbar`}>
+                    {filters.map(f => (
+                        <div class="filter-group">
+                            <span class="filter-label">{f.label}</span>
+                            <button class="filter-btn active" data-filter-key={f.key} data-filter-val="__all__">
+                                All
+                            </button>
+                            {(filterOptions[f.key] || []).map(val => (
+                                <button class="filter-btn" data-filter-key={f.key} data-filter-val={val}>
+                                    {val}
+                                </button>
+                            ))}
+                        </div>
+                    ))}
+                    <button class="filter-btn" id={`${tableId}-reset`} style="margin-left: auto; opacity: 0.65;">
+                        <i class="fa-solid fa-rotate-left" />
+                        Reset
+                    </button>
+                </div>
+            )}
+            <p class="st-count" id={`${table}-count`} style="font-size: 0.8rem; color: var(--color-text-muted); margin: 6px 2px;">
+                <span class="st-count-num">{processedRows.length}</span> items
+            </p>
+            <div class="sortable-table-wrap">]
+                <table class="sortable-table" id={tableId} data-sort-key={defaultSort} data-sort-asc={defaultAsc ? '1' : '0'}>
+                    <thead>
+                        <tr>
+                            {
+                                columns.map(col => {
+                                    const sortable = col.sortable !== false;
+                                    const isCurrent = col.key === defaultSort;
+                                    const cls = [
+                                        'st-th',
+                                        sortable ? 'st-th-sortable' : '',
+                                        isCurrent ? (defaultAsc ? 'st-th-current st-th-asc' : 'st-th-current st-th-desc') : ''
+                                    ].filter(Boolean).join(' ');
+                                    return (
+                                        <th class={cls} data-key={col.key} style={`text-align:${col.align ?? 'left'}`}>
+                                            {col.label}
+                                            {sortable && (
+                                                <span class="st-arrow" aria-hidden="true" />
+                                            )}
+                                        </th>
+                                    );
+                                })
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {processedRows.map((row) => {
+                            const dataAttrs = Object.fromEntries(
+                                columns.map((col, ci) => [`data-raw-${col.key}`, row.cells[ci].raw])
+                            )
+                            return (
+                                <tr {...dataAttrs}>
+                                    {row.cells.map((cell, ci) => (
+                                        <td style={`text-align: ${columns[ci].align ?? 'left'}`} set:html={cell.display} />
+                                    ))}
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
+            </div>
+            <p id={`${tableId}-empty`} style="display: none; text-align: center; padding: 32px; color: var(--color-text-muted);">
+                <i class="fa-solid fa-circle-xmark" />
+                No data found
+            </p>
+        </div>
+    )
+}
+<style>
+    .sortable-table-wrap {
+        overflow-x: auto;
+        border-radius: var(--radius);
+        border: 1px solid var(--color-border);
+    }
+
+    .sortable-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .sortable-table thead tr {
+        background: var(--color-bg-secondary);
+    }
+
+    .st-th {
+        padding: 10px 14px;
+        font-weight: 700;
+        border-bottom: 2px solid var(--color-border);
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    .st-sortable {
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+
+    .st-sortable:hover {
+        background: var(--color-bg-tertiary);
+    }
+
+    .st-arrow::after {
+        content: ' ⇅';
+        opacity: 0.35;
+        font-size: 0.75em;
+    }
+
+    .st-asc .st-arrow::after {
+        content: ' ↑';
+        opacity: 1;
+    }
+
+    .st-desc .st-arrow::after {
+        content: ' ↓';
+        opacity: 1;
+    }
+
+    .sortable-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--color-border-subtle);
+        vertical-align: middle;
+    }
+
+    .sortable-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .sortable-table tbody tr:hover td {
+        background: var(--color-bg-secondary);
+    }
+
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        background: var(--color-bg-secondary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+    }
+
+    .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .filter-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--color-text-subtle);
+        margin-right: 4px;
+    }
+
+    .filter-btn {
+        padding: 3px 10px;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        background: var(--color-bg);
+        color: var(--color-text-muted);
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: all 0.12s;
+        font-family: var(--font-sans);
+    }
+
+    .filter-btn:hover {
+        background: var(--color-bg-tertiary);
+    }
+
+    .filter-btn.active {
+        background: var(--color-accent);
+        color: #fff;
+        border-color: var(--color-accent);
+        font-weight: 600;
+    }
+
+    .filter-count {
+        font-size: 0.75rem;
+        color: var(--color-text-subtle);
+        margin-left: 4px;
+    }
+</style>
+<script define:vars={{ tableId, filtersJson, columnsJson}}>
+    (function () {
+        const filters = JSON.parse(filtersJson);
+        const columns = JSON.parse(columnsJson);
+        const table = document.getElementById(tableId);
+        const countEl = document.querySelector(`#${tableId}-count .st-count-num`);
+        const emptyEl = document.getElementById(`${tableId}-empty`);
+        if (!table) return;
+
+        let sortKey = table.dataset.sortKey;
+        let sortAsc = table.dataset.sortAsc === '1';
+
+        const filterState = {};
+        filters.forEach(filter => {
+            filterState[filter.key] = '__all__';
+        });
+
+        function getVal(tr, key) {
+            const raw = tr.getAttribute(`data-raw-${key}`);
+            if (raw !== null) return raw;
+            const idx = columns.findIndex(col => col.key === key);
+            const cells = tr.querySelectorAll('td');
+            return cells[idx]?.textContent?.trim() ?? '';
+        }
+
+        function applyFilter() {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody?.querySelectorAll('tr') || []);
+            let vis = 0;
+            rows.forEach(tr => {
+                const show = filters.every(filter => {
+                    const sel = filterState[filter.key];
+                    if (sel === '__all__') return true;
+                    const raw = tr.getAttribute('data-raw-' + filter.key) || '';
+                    return filter.split
+                        ? raw.split(filter.split).map(v => v.trim()).includes(sel)
+                        : raw === sel;
+                });
+                tr.style.display = show ? '' : 'none';
+                if (show) vis++;
+            });
+            if (countEl) countEl.textContent = String(vis);
+            if (emptyEl) emptyEl.style.display = vis === 0 ? 'block' : 'none';
+        }
+
+        function applySort(key) {
+            if (key === sortKey) {
+                sortAsc = !sortAsc
+            } else {
+                sortKey = key;
+                sortAsc = true;
+            }
+            table.querySelectorAll('.st-th').forEach(th => {
+                th.classList.remove('st-th-sorted-asc', 'st-th-sorted-desc');
+                if (th.dataset.key === key) {
+                    th.classList.add(sortAsc ? 'st-th-sorted-asc' : 'st-th-sorted-desc');
+                }
+            });
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const av = getVal(a, key);
+                const bv = getVal(b, key);
+                const n = Number(av) - Number(bv);
+                const cmp = isNaN(n) ? av.localeCompare(bv) : n;
+                return sortAsc ? cmp : -cmp;
+            });
+            rows.forEach(row => tbody.appendChild(row));
+            applyFilter()
+        }
+        table.querySelectorAll('.st-sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                applySort(th.dataset.key)
+            })
+        })
+        const fb = document.getElementById(tableId + '-filterbar');
+        if (fb) {
+            fb.querySelectorAll('[data-filter-key]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.getAttribute('data-filter-key');
+                    const val = btn.getAttribute('data-filter-value');
+                    filterState[key] = val;
+                    fb.querySelectorAll('[data-filter-key]').forEach(
+                        b => b.classList.remove('active', b === btn ? '' : 'inactive')
+                    );
+                    btn.classList.add('active');
+                    applyFilter();
+                })
+            })
+            const reset = document.getElementById(tableId + '-reset')
+            if (reset) reset.addEventListener('click', () => {
+                filters.forEach(f => {
+                    filterState[f.key] = '__all__'
+                })
+                fb.querySelectorAll('[data-filter-key]').forEach(btn => {
+                    btn.classList.remove('active', btn.getAttribute('data-filter-val') === '__all__');
+                });
+                applyFilter();
+            })
+        }
+        applyFilter()
+    })
+</script>

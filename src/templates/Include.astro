@@ -1,5 +1,5 @@
 ---
-import { getEntry } from "astro:content";
+import { getEntry, render } from "astro:content";
 import { resolveSlug } from "@lib/slugCore";
 import { buildSlugMapSync } from "@lib/slugmap";
 import { defaultLocale, locales, type Locale } from "@i18n/i18n.config";
@@ -41,9 +41,9 @@ if (!entry) {
 let Content: any = null
 let resolvedFullSlug = "";
 if (entry) {
-    const rendered = await entry.render()
+    const rendered = await render(entry)
     Content = rendered.Content
-    resolvedFullSlug = entry.slug
+    resolvedFullSlug = entry.id
 }
 
 let wikiUrl = "";
@@ -78,6 +78,16 @@ if (entry) {
 )}
 
 <style>
+    .include-error {
+        display: inline-block;
+        padding: 2px 8px;
+        background-color: var(--color-bg-secondary);
+        color: var(--color-accent);
+        border: 1px dashed var(--color-border);
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-family: var(--font-mono);
+    }
     .transclusion {
         border: 1px solid var(--color-border);
         border-radius: 8px;

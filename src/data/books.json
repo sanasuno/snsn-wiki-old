@@ -1,0 +1,10 @@
+[
+  { "id": "pragmatic-programmer", "title": "達人プログラマー", "author": "David Thomas, Andrew Hunt", "year": 2020, "genre": "技術書", "rating": 5, "tags": ["プログラミング", "キャリア"], "description": "ソフトウェア開発者として長く活躍するための実践的な指針を網羅した名著。" },
+  { "id": "clean-code",          "title": "Clean Code",        "author": "Robert C. Martin",         "year": 2009, "genre": "技術書", "rating": 5, "tags": ["プログラミング", "設計"], "description": "読みやすく保守しやすいコードを書くための原則と実践を解説。" },
+  { "id": "issue-driven",        "title": "イシューからはじめよ", "author": "安宅和人",             "year": 2010, "genre": "ビジネス", "rating": 5, "tags": ["思考法", "問題解決"], "description": "本当に解くべき問い（イシュー）を見極めてから動くことの重要性を説く。" },
+  { "id": "essentialism",        "title": "エッセンシャル思考", "author": "Greg McKeown",            "year": 2014, "genre": "ビジネス", "rating": 4, "tags": ["生産性", "思考法"], "description": "最重要なことのみに集中し、残りを排除することで成果を最大化する。" },
+  { "id": "design-patterns",     "title": "Design Patterns",   "author": "GoF",                      "year": 1994, "genre": "技術書", "rating": 4, "tags": ["プログラミング", "設計"], "description": "オブジェクト指向設計における23のデザインパターンを解説した古典。" },
+  { "id": "factfulness",         "title": "FACTFULNESS",        "author": "Hans Rosling",             "year": 2018, "genre": "ノンフィクション", "rating": 5, "tags": ["データ", "思考法"], "description": "思い込みではなくデータで世界を正しく見るための10の習慣。" },
+  { "id": "zero-to-one",         "title": "ゼロ・トゥ・ワン",  "author": "Peter Thiel",              "year": 2014, "genre": "ビジネス", "rating": 3, "tags": ["スタートアップ", "ビジネス"], "description": "競争を避けて独占的な価値を生み出すスタートアップの哲学。" },
+  { "id": "ddia",                "title": "Designing Data-Intensive Applications", "author": "Martin Kleppmann", "year": 2017, "genre": "技術書", "rating": 5, "tags": ["分散システム", "データベース"], "description": "大規模データシステムの設計原則を体系的に解説した決定版。" }
+]

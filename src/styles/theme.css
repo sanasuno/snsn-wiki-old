@@ -23,6 +23,7 @@
     --color-bg-secondary: #f5f5f5;
     --color-bg-secondary-hover: #e5e5e5;
     --color-bg-tertiary: #f0f0f0;
+    --color-bg-code: #f8f8f8;
     /* ボーダー */
     --color-border: #e0e0e0;
     /* テキスト */
@@ -63,6 +64,7 @@
     --color-bg-secondary: #2a2a2a;
     --color-bg-secondary-hover: #3a3a3a;
     --color-bg-tertiary: #303030;
+    --color-bg-code: #2a2a2a;
     /* ボーダー */
     --color-border: #404040;
     

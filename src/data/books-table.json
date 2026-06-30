@@ -1,0 +1,29 @@
+{
+  "columns": [
+    { "key": "title",  "label": "タイトル", "align": "left",   "html": true  },
+    { "key": "author", "label": "著者",     "align": "left"                  },
+    { "key": "year",   "label": "出版年",   "align": "center"                },
+    { "key": "genre",  "label": "ジャンル", "align": "center", "html": true  },
+    { "key": "rating", "label": "評価",     "align": "center", "html": true  },
+    { "key": "tags",   "label": "タグ",     "align": "left",   "html": true, "sortable": false }
+  ],
+  "filters": [
+    { "key": "genre", "label": "ジャンル" },
+    { "key": "tags",  "label": "タグ", "split": "," }
+  ],
+  "defaultSort": "rating",
+  "defaultAsc": false,
+  "transform": {
+    "genre": {
+      "type": "badge",
+      "colors": {
+        "技術書":           { "bg": "#dbeafe", "color": "#1d4ed8" },
+        "ビジネス":         { "bg": "#fef9c3", "color": "#854d0e" },
+        "ノンフィクション": { "bg": "#dcfce7", "color": "#166534" }
+      }
+    },
+    "rating": { "type": "stars", "max": 5 },
+    "tags":   { "type": "tags" },
+    "title":  { "type": "link", "hrefField": "id", "basePath": "/books/" }
+  }
+}
