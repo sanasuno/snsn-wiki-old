@@ -16,6 +16,12 @@ const { id } = Astro.props
         scroll-margin-top: calc(var(--header-height) + 24px);
         transition: background 0.3s;
     }
+    .footnote-item:target {
+        background-color: var(--color-bg-secondary);
+        border-radius: var(--radius-sm);
+        padding: 4px 8px;
+        margin: -4px -8px;
+    }
     .footnote-number {
         font-weight: 700;
         margin-right: 4px;
@@ -26,3 +32,16 @@ const { id } = Astro.props
         color: var(--color-text-muted);
     }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll<HTMLElement>('.footnote-back').forEach(function(back) {
+            back.addEventListener('click', function(e) {
+                var href = back.getAttribute('href');
+                var refEl = href ? document.querySelector(href) : null;
+                if (!refEl) return;
+                e.preventDefault();
+                refEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    });
+</script>

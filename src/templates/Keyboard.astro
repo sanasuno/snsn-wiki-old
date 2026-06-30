@@ -3,7 +3,11 @@ interface Props {
     keys: string
 }
 const { keys = ''} = Astro.props
-const keyList = keys.split('+').map(key => key.trim()).filter(Boolean)
+const keyList = keys
+    .replace(/\+\+/g, '\x00')
+    .split('+')
+    .map(key => key.replace(/\x00/g, '+').trim())
+    .filter(Boolean)
 ---
 {keyList.map((key, i) => (
     <>
@@ -25,6 +29,6 @@ const keyList = keys.split('+').map(key => key.trim()).filter(Boolean)
     }
     .kbd-sep {
         margin: 0 4px;
-        color: var(--color-text-subtle);
+        color: var(--color-text);
     }
 </style>

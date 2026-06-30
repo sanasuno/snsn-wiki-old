@@ -20,6 +20,9 @@ import ControllerButton from '@templates/ControllerButton.astro';
 import Keyboard from '@templates/Keyboard.astro';
 import Columns from '@templates/Columns.astro';
 import Col from '@templates/Col.astro';
+import Tabs from '@templates/Tabs.astro';
+import Tab from '@templates/Tab.astro';
+import Navbox from '@templates/Navbox.astro';
 import Infobox from '@templates/Infobox.astro';
 
 このページは **snsn-codex の基本機能** をひととおり使うサンプルです。  
@@ -73,7 +76,7 @@ import Infobox from '@templates/Infobox.astro';
 
 色: `blue` `green` `red` `yellow` `gray` `purple`
 
-<Badge label="blue" color="blue" /> <Badge label="green" color="green" /> <Badge label="red" color="red" /> <Badge label="yellow" color="yellow" /> <Badge label="gray" color="gray" /> <Badge label="purple" color="purple" />
+<Badge label="blue" color="blue" /> <Badge label="green" color="green" /> <Badge label="red" color="red" /> <Badge label="yellow" color="yellow" /> <Badge label="gray" color="gray" /> <Badge label="purple" color="purple" /> <Badge label="#9c3f66" color="#9c3f66" />
 
 ---
 
@@ -210,6 +213,71 @@ Markdown を書くだけでページが生成されます。
 
 </Col>
 </Columns>
+
+---
+
+## tabs — タブ
+
+`<Tabs>` と `<Tab label="...">` でタブを作ります。タブ内で完全な Markdown が使えます。
+
+```mdx
+<Tabs>
+<Tab label="タブ1">
+
+**Markdown** が使えます。
+
+</Tab>
+<Tab label="タブ2">
+
+- リスト
+- も使えます
+
+</Tab>
+</Tabs>
+```
+
+<Tabs>
+<Tab label="タブ1">
+
+**Markdown** が使えます。
+
+</Tab>
+<Tab label="タブ2">
+
+- リスト
+- も使えます
+
+</Tab>
+<Tab label="コード">
+
+```bash
+npm run dev
+```
+
+</Tab>
+</Tabs>
+
+---
+
+## include — トランスクルージョン
+
+他の Wiki ページの内容をそのまま埋め込みます。スラッグで指定します。
+
+```mdx
+<Include slug="sample" />
+```
+
+---
+
+## navbox — ナビゲーションボックス
+
+`src/data/navboxes.ts` に定義したナビゲーションボックスを `id` で呼び出します。
+
+```mdx
+<Navbox id="sample" />
+```
+
+<Navbox id="sample" />
 
 ---
 

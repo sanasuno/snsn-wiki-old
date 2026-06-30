@@ -63,29 +63,17 @@ const { term, desc } = Astro.props
 
 <script>
     import {tooltips} from "@data/tooltips.ts"
-    document.addEventListener('DOMContentLoaded', function() {
-        (function() {
-            var autoTips = document.querySelectorAll('.tooltip-auto');
-            if (autoTips.length === 0) return;
-            fetch(tooltips)
-                .then(function(response) {
-                    return response.ok
-                        ? response.json()
-                        : {};
-                })
-                .then(function(data: Record<string, string>) {
-                    autoTips.forEach(function(tip) {
-                        var key = tip.getAttribute('data-tooltip-key') || '';
-                        var desc = data[key] || '';
-                        var popup = tip.querySelector('.tooltip-popup');
-                        if (desc && popup) {
-                            popup.textContent = desc;
-                        }
-                    });
-                })
-                .catch(function() {
-                    // noop
-                });
-        })();
+    document.addEventListener('DOMContentLoaded', () => {
+        const autoTips = document.querySelectorAll<HTMLElement>('.tooltip-auto');
+        if (autoTips.length === 0) return;
+        const data = tooltips as Record<string, string>;
+        autoTips.forEach((tip) => {
+            const key = tip.getAttribute('data-tooltip-key') ?? '';
+            const desc = data[key] ?? '';
+            const popup = tip.querySelector('.tooltip-popup');
+            if (desc && popup) {
+                popup.textContent = desc;
+            }
+        });
     });
 </script>

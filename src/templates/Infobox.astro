@@ -34,7 +34,12 @@ function loadJson(src: string): any {
     if (!existsSync(jsonPath)) {
         throw new Error(`JSON file not found: ${jsonPath}`);
     }
-    const jsonData = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    let jsonData: unknown = null;
+    try {
+        jsonData = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    } catch (error) {
+        data = { title: `Failed to parse JSON: src/data/${src}.json` }
+    }
     jsonCache.set(src, jsonData);
     return jsonData;
 }

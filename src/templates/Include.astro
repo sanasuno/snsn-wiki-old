@@ -1,0 +1,98 @@
+---
+import { getEntry } from "astro:content";
+import { resolveSlug } from "@lib/slugCore";
+import { buildSlugMapSync } from "@lib/slugmap";
+import { defaultLocale } from "@i18n/i18n.config";
+
+interface Props {
+    slug: string
+    locale: string
+}
+const { slug, locale } = Astro.props
+
+if (!slug) {
+    throw new Error("slug is required")
+}
+
+const baseUrl = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
+
+const slugMap = buildSlugMapSync()
+const baseSlug = resolveSlug(slug, slugMap)
+
+let entry = await getEntry('wiki', `${locale}/${baseSlug}`)
+if (!entry && locale !== defaultLocale) {
+    entry = await getEntry('wiki', `${defaultLocale}/${baseSlug}`)
+}
+if (!entry) {
+    entry = await getEntry('wiki', baseSlug)
+}
+
+let Content: any = null
+let resolvedFullSlug = "";
+if (entry) {
+    const rendered = await entry.render()
+    Content = rendered.Content
+    resolvedFullSlug = entry.slug
+}
+
+let wikiUrl = "";
+if (entry) {
+    const resolvedParts = resolvedFullSlug.split('/');
+    const entryLocale = resolvedParts[0];
+    const entryBaseSlug = resolvedParts.slice(1).join('/');
+    const urlPrefix = entryLocale === defaultLocale ? '' : `/${entryLocale}`;
+    wikiUrl = `${baseUrl}${urlPrefix}/${entryBaseSlug}`;
+}
+---
+{!entry && (
+    <span class="include-error">
+        include not found: {slug}
+    </span>
+)}
+
+{entry && Content && (
+    <div class="transclusion">
+        <div class="transclusion-header">
+            <a href={wikiUrl}>{slug}</a>
+        </div>
+        <div class="transclusion-body">
+            <Content />
+        </div>
+    </div>
+)}
+
+<style>
+    .transclusion {
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        margin: 20px 0;
+        overflow: hidden;
+    }    
+    .transclusion-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background-color: var(--color-bg-secondary);
+        font-size: 0.78rem;
+        color: var(--color-text-subtle);
+    }
+    .transclusion-header a {
+        font-weight: 600;
+        color: var(--color-link);
+        text-decoration: none;
+    }
+    .transclusion-header a:hover {
+        text-decoration: underline;
+    }
+    .transclusion-body {
+        padding: 16px 20px;
+        font-size: 0.9rem;
+    }
+    .transclusion-body > *:first-child {
+        margin-top: 0;
+    }
+    .transclusion-body > *:last-child {
+        margin-bottom: 0;
+    }
+</style>
