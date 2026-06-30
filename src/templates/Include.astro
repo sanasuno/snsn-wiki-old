@@ -2,11 +2,11 @@
 import { getEntry } from "astro:content";
 import { resolveSlug } from "@lib/slugCore";
 import { buildSlugMapSync } from "@lib/slugmap";
-import { defaultLocale } from "@i18n/i18n.config";
+import { defaultLocale, locales, type Locale } from "@i18n/i18n.config";
 
 interface Props {
     slug: string
-    locale: string
+    locale?: Locale
 }
 const { slug, locale } = Astro.props
 
@@ -15,12 +15,23 @@ if (!slug) {
 }
 
 const baseUrl = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
+const requestedLocale = locales.includes(locale as Locale)
+    ? locale as Locale
+    : locales.includes(Astro.params.locale as Locale)
+        ? Astro.params.locale as Locale
+        : defaultLocale
 
 const slugMap = buildSlugMapSync()
 const baseSlug = resolveSlug(slug, slugMap)
 
-let entry = await getEntry('wiki', `${locale}/${baseSlug}`)
-if (!entry && locale !== defaultLocale) {
+const currentRouteSlug = typeof Astro.params.slug === "string" && Astro.params.slug.length > 0
+    ? Astro.params.slug
+    : "index";
+const normalizeWikiSlug = (value: string) => value.replace(/\/index$/, "") || "index";
+const isSelfInclude = normalizeWikiSlug(currentRouteSlug) === normalizeWikiSlug(baseSlug);
+
+let entry = isSelfInclude ? undefined : await getEntry('wiki', `${requestedLocale}/${baseSlug}`)
+if (!entry && requestedLocale !== defaultLocale) {
     entry = await getEntry('wiki', `${defaultLocale}/${baseSlug}`)
 }
 if (!entry) {
@@ -40,17 +51,22 @@ if (entry) {
     const resolvedParts = resolvedFullSlug.split('/');
     const entryLocale = resolvedParts[0];
     const entryBaseSlug = resolvedParts.slice(1).join('/');
-    const urlPrefix = entryLocale === defaultLocale ? '' : `/${entryLocale}`;
-    wikiUrl = `${baseUrl}${urlPrefix}/${entryBaseSlug}`;
+    wikiUrl = `${baseUrl}/${entryLocale}/wiki/${entryBaseSlug.replace(/\/index$/, "")}`;
 }
 ---
-{!entry && (
+{isSelfInclude && (
+    <span class="include-error">
+        include skipped self reference: {slug}
+    </span>
+)}
+
+{!isSelfInclude && !entry && (
     <span class="include-error">
         include not found: {slug}
     </span>
 )}
 
-{entry && Content && (
+{!isSelfInclude && entry && Content && (
     <div class="transclusion">
         <div class="transclusion-header">
             <a href={wikiUrl}>{slug}</a>
