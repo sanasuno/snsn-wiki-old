@@ -1,0 +1,390 @@
+---
+title: レイアウトコンポーネント コード解説
+description: snsn-wiki のレイアウト関連ファイルのコード解説
+tags:
+  - コード解説
+  - レイアウト
+category: code
+date: 2026-07-03
+order: 10
+---
+
+## MainLayout.astro
+
+**パス:** `src/layouts/MainLayout.astro`
+
+サイト全体を包む唯一のレイアウトコンポーネントです。
+すべてのページはこのコンポーネントを通じてレンダリングされます。
+
+### Props
+
+```ts
+interface Props {
+    title: string;               // ページタイトル（必須）
+    description?: string;        // ページ説明（省略時はサイト説明を使用）
+    locale?: Locale;             // ロケール（省略時はdefaultLocale）
+    alternateLinks?: { locale: Locale; url: string }[]; // hreflang用代替URL
+    headings?: { depth: number; slug: string; text: string }[]; // 見出し（TOC用）
+    tags?: string[];             // タグ一覧
+    categories?: string[];       // カテゴリ一覧
+    date?: Date;                 // 作成日
+    updated?: Date;              // 更新日
+    isFallbackContent?: boolean; // フォールバック表示中かどうか
+    isWikiPage?: boolean;        // Wikiページかどうか（TOCパネル表示制御）
+    showMeta?: boolean;          // メタ情報（パンくず・タイトル等）の表示制御
+}
+```
+
+### 主要な処理
+
+```ts
+// 現在のパスを正規化
+const currentPath = removeTrailingSlash(Astro.url.pathname) || '/';
+
+// ロケール別のURL体系
+const localeBaseUrl = `${baseUrl}/${locale}`;   // 例: /ja
+const wikiBaseUrl   = `${localeBaseUrl}/wiki`;  // 例: /ja/wiki
+
+// TOCパネルの表示はWikiページのみ
+const hasTocPanel = isWikiPage;
+```
+
+### `<head>` タグで行っていること
+
+| 内容            | 詳細                                                     |
+|----------------|----------------------------------------------------------|
+| OGP メタタグ    | `og:title`, `og:description`, `og:image`, `og:locale` など |
+| hreflang       | `alternateLinks` を元に各ロケールの代替URLを出力          |
+| canonical      | `Astro.url` をそのまま canonical URL として出力           |
+| テーマ初期化    | `is:inline` スクリプトで `localStorage` を参照してちらつきを防ぐ |
+| 言語初期化      | `initI18n()` でURL→ロケール判定を行い言語切替セレクトを初期化 |
+
+### テーマ初期化スクリプト（重要）
+
+```html
+<script is:inline>
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        } else if (!savedTheme) {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        }
+    })();
+</script>
+```
+
+`is:inline` を使う理由: Astro のバンドル処理を経ずにそのまま `<head>` 内に出力することで、
+CSS が適用される前にテーマを設定でき、ライト/ダーク切替時のちらつき（FOUC）を防ぎます。
+
+---
+
+## header.config.ts
+
+**パス:** `src/layouts/header.config.ts`
+
+ヘッダーナビゲーションの定義ファイルです。
+配列に項目を追加・削除することでヘッダーのリンクを変更できます。
+
+```ts
+export type NavItem = {
+    path: string;           // ロケールベースURLからの相対パス（例: '/wiki'）
+    icon: string;           // Font Awesome クラス名（例: 'fa-solid fa-house'）
+    i18nKey: TranslationKey; // i18n 翻訳キー（例: 'nav.home'）
+}
+
+export const headerNavigation: NavItem[] = [
+    { path: '/',        icon: 'fa-solid fa-house',           i18nKey: 'nav.home' },
+    { path: '/category', icon: 'fa-solid fa-folder',         i18nKey: 'nav.category' },
+    { path: '/tag',     icon: 'fa-solid fa-tags',            i18nKey: 'nav.tags' },
+    { path: '/graph',   icon: 'fa-solid fa-diagram-project', i18nKey: 'nav.graph' },
+];
+```
+
+---
+
+## Header.astro
+
+**パス:** `src/components/Header.astro`
+
+### アクティブ判定
+
+```ts
+function isActive(targetPath, currentPath, localeBaseUrl): boolean {
+    const targetUrl = `${localeBaseUrl}${targetPath}`;
+    if (targetPath === '/') {
+        // ルートパスは完全一致のみ
+        return currentPath === localeBaseUrl;
+    } else {
+        // サブパス（/wiki/xxx など）もアクティブにする
+        return currentPath === targetUrl || currentPath.startsWith(`${targetUrl}/`);
+    }
+}
+```
+
+ルートパスを `/wiki` 等と区別するため、`/` のみ完全一致で判定しています。
+
+### テーマ切替アイコンの仕組み
+
+```html
+<button class="theme-toggle" id="theme-toggle">
+    <i class="fa-solid fa-moon icon-dark"></i>   <!-- ダークテーマ時に表示 -->
+    <i class="fa-solid fa-sun icon-light"></i>   <!-- ライトテーマ時に表示 -->
+</button>
+```
+
+`theme.css` で `.icon-dark` / `.icon-light` の `display` を `data-theme` 属性値に基づいて切り替えます。
+
+---
+
+## sidebar.config.ts
+
+**パス:** `src/layouts/sidebar.config.ts`
+
+### 設定例：手動リンクセクション
+
+```ts
+{
+    titleKey: 'sidebar.quickLinks',
+    icon: 'fa-solid fa-bolt',
+    collapsed: false,
+    items: [
+        { i18nKey: 'sidebar.home', href: '/', icon: 'fa-solid fa-house' },
+        { slug: 'my-page', icon: 'fa-solid fa-star' }, // スラッグ指定でページタイトルを自動取得
+    ],
+}
+```
+
+`slug` を指定するとコンテンツコレクションからタイトルを自動取得します。
+`href` 単体で指定する場合は `i18nKey` も必要です。
+
+### 設定例：カテゴリ自動収集セクション
+
+```ts
+{
+    titleKey: 'sidebar.mySection',
+    icon: 'fa-solid fa-book',
+    collapsed: true,
+    category: 'tech', // src/content/wiki/*/tech/ 配下のページを自動収集
+    autoSort: 'order', // frontmatter の order フィールドで並び替え
+}
+```
+
+---
+
+## Sidebar.astro
+
+**パス:** `src/components/Sidebar.astro`
+
+### ページデータの取得と分類
+
+```ts
+// draftとhiddenでないページをすべて取得
+const allPages = await getCollection("wiki", (p) => !p.data.draft && !p.data.hidden);
+
+// ロケールでフィルタリングして重複排除
+const pages = getUniquePagesByLocale(allPages, locale);
+
+// カテゴリ別にグループ化
+const byCategory: Record<string, typeof pages> = {};
+for (const page of pages) {
+    const category = getCategoryFromId(page.id) || [];
+    const key = autoGroupByLeafCategory && category.length > 0
+        ? category[category.length - 1]   // 末尾カテゴリのみ使用
+        : category.join('/');
+    (byCategory[key] ??= []).push(page);
+}
+```
+
+### 折りたたみ状態の管理
+
+各セクションのボタンは `data-storage-key` 属性にローカルストレージのキーを持ちます。
+`sidebar.ts` の `setupSidebarToggle()` がこれを読み取り、状態の保存・復元を行います。
+
+```html
+<button class="sidebar-section-title sidebar-toggle"
+        data-storage-key="snsn-sidebar-quickLinks"
+        aria-expanded="true">
+    ...
+</button>
+<div class="sidebar-nav sidebar-collapsible">
+    ...
+</div>
+```
+
+`aria-expanded="false"` のとき `.sidebar-collapsible` に `collapsed` クラスが付与され、
+CSS の `max-height: 0; opacity: 0;` でアニメーション付き非表示になります。
+
+---
+
+## MainContent.astro
+
+**パス:** `src/components/MainContent.astro`
+
+### パンくずリストの生成ロジック
+
+```ts
+function buildCrumbs(path, title, localeBaseUrl, isWikiPage): Crumb[] {
+    if (isWikiPage) {
+        // /ja/wiki/tech/astro → ['tech', 'astro'] に分解
+        const segments = strippedPath.split('/').filter(Boolean);
+        const crumbs = [{ label: 'Home', href: localeBaseUrl }];
+        let categoryAccumulated = '';
+        segments.forEach((segment, index) => {
+            const isLast = index === segments.length - 1;
+            categoryAccumulated += (categoryAccumulated ? '/' : '') + segment;
+            crumbs.push({
+                label: isLast ? title : segment,
+                // 中間セグメントはカテゴリページへリンク
+                href: isLast ? path : `${localeBaseUrl}/category/${categoryAccumulated}`,
+                categorySegment: !isLast ? segment : undefined,
+            });
+        });
+        return crumbs;
+    }
+    // 通常ページも同様にURLセグメントから生成
+}
+```
+
+### 表示条件まとめ
+
+| 要素                    | 表示条件                    |
+|------------------------|-----------------------------|
+| フォールバック警告       | `isFallbackContent === true` |
+| page-header 全体        | `showMeta === true`          |
+| カテゴリリンク          | `categories` に値がある      |
+| 日付情報               | `date` または `updated` がある |
+| タグ一覧               | `tags.length > 0`            |
+
+---
+
+## Toc.astro
+
+**パス:** `src/components/Toc.astro`
+
+見出し配列（`headings`）を受け取り、h2〜h4 のみ表示します。
+
+```ts
+const filtered = headings.filter(h => h.depth >= 2 && h.depth <= 4);
+```
+
+h1 はページタイトルとして別途表示されるため、TOCには含めません。
+
+### 深さに応じたインデント（CSS）
+
+```css
+.toc-nav li.depth-3 a { padding-left: 20px; } /* h3 */
+.toc-nav li.depth-4 a { padding-left: 32px; } /* h4 */
+```
+
+### モバイル用フローティングボタン
+
+```html
+<!-- TOCパネルの外側に配置 -->
+<button class="toc-drawer-button" id="toc-drawer-button">
+    <i class="fa-solid fa-list-ul"></i>
+</button>
+```
+
+1200px 以下でのみ表示され、クリックで `#toc-panel` に `.open` クラスを付与します。
+
+---
+
+## MiniGraph.astro
+
+**パス:** `src/components/MiniGraph.astro`
+
+データをHTML属性経由でJavaScriptに渡す設計です。
+
+```html
+<div class="mini-graph-container"
+     id="mini-graph-container"
+     data-current-path={currentPath}
+     data-locale={locale}
+     data-locale-base-url={localeBaseUrl}
+     data-no-link-msg={t('graph.mini.noLinks', locale)}>
+    <canvas id="mini-graph-canvas" />
+    <div id="mini-graph-loading">...</div>
+</div>
+```
+
+`src/scripts/graph/minigraph.ts` が `dataset` からこれらの値を読み取り、
+`/api/graph.json` からグラフデータを取得して canvas に描画します。
+
+---
+
+## toc.ts
+
+**パス:** `src/scripts/toc.ts`
+
+### スクロール追従の仕組み（IntersectionObserver）
+
+```ts
+const observer = new IntersectionObserver(
+    (entries) => {
+        entries.forEach(entry => {
+            const id = entry.target.id;
+            const link = document.querySelector(`.toc-nav a[href="#${id}"]`);
+            if (entry.isIntersecting) {
+                tocLinks.forEach(l => l.classList.remove('active'));
+                link?.classList.add('active');
+            }
+        });
+    },
+    { rootMargin: '-20% 0% -70% 0%' } // 上20%・下70%を除いた範囲を「表示中」とする
+);
+document.querySelectorAll('.main-content h2, .main-content h3, .main-content h4')
+    .forEach(heading => observer.observe(heading));
+```
+
+`rootMargin: '-20% 0% -70% 0%'` により、画面中央付近の見出しがアクティブになります。
+
+---
+
+## sidebar.ts
+
+**パス:** `src/scripts/sidebar.ts`
+
+### モバイルサイドバーの開閉（`setupSidebar`）
+
+```ts
+sidebarToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();                    // クリックをバブリングさせない
+    sidebar?.classList.toggle('open');      // サイドバーを開閉
+});
+
+document.addEventListener('click', (e) => {
+    // サイドバー外クリックで自動クローズ
+    if (sidebar?.classList.contains('open') &&
+        !sidebar.contains(e.target) &&
+        !sidebarToggle?.contains(e.target)) {
+        sidebar.classList.remove('open');
+    }
+});
+```
+
+### セクション折りたたみ（`setupSidebarToggle`）
+
+```ts
+document.querySelectorAll<HTMLButtonElement>('[data-storage-key]').forEach(button => {
+    const key = button.dataset.storageKey;
+    const nav = button.nextElementSibling as HTMLElement;
+
+    // ローカルストレージから前回の状態を復元
+    const saved = getPreference(key);
+    if (saved !== null) {
+        const isCollapsed = saved === 'true';
+        button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        nav.classList.toggle('collapsed', isCollapsed);
+    }
+
+    // クリックで状態切替 + 保存
+    button.addEventListener('click', () => {
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+        nav.classList.toggle('collapsed', isExpanded);
+        savePreference(key, isExpanded ? 'true' : 'false');
+    });
+});
+```

@@ -27,10 +27,26 @@ body {
     display: none !important;
 }
 
-/* -------- レイアウト -------- */
+/* ========================================
+   レイアウト (CSS Grid)
+   ────────────────────────────────────
+   サイト全体を CSS Grid で 3 カラム構成にする。
+
+   [header  header  header]
+   [sidebar  main    toc  ]
+
+   .no-toc クラス付きのとき（Wiki ページ以外）は 2 カラム。
+
+   変数値:
+     --sidebar-width   : 左カラム幅 (260px)
+     --toc-width       : 右カラム幅 (220px)
+     --header-height   : ヘッダー高さ (56px)
+   ======================================== */
 .layout {
     display: grid;
+    /* 左: サイドバー / 中: メイン（伸縮）/ 右: TOC */
     grid-template-columns: var(--sidebar-width) 1fr var(--toc-width);
+    /* 1行目: ヘッダー固定高さ / 2行目: 残り全部 */
     grid-template-rows: var(--header-height) 1fr;
     grid-template-areas:
         "header header header"
@@ -38,6 +54,7 @@ body {
     min-height: 100vh;
 }
 
+/* Wiki ページ以外（isWikiPage=false）で TOC パネルを非表示のとき */
 .layout.no-toc {
     grid-template-columns: var(--sidebar-width) 1fr;
     grid-template-areas:
@@ -45,6 +62,11 @@ body {
         "sidebar main";
 }
 
+/* ── レスポンシブ: ≤1200px ──
+   TOCパネルをグリッドから隠し、
+   フローティングボタンクリックで開くドロワー方式に切り替わる。
+   実際のドロワースタイルは ココジャナイの「モバイル用TOCドロワー」セクションに記載。
+*/
 @media (max-width: 1200px) {
     .layout{
         grid-template-columns: var(--sidebar-width) 1fr;
@@ -52,27 +74,34 @@ body {
             "header header"
             "sidebar main";
     }
+    /* フローティングドロワーが代わりに表示されるため、grid の設定は非表示に */
     .toc-panel {
         display: none;
     }
 }
 
+/* ── レスポンシブ: ≤768px ──
+   サイドバーをグリッドから御し、ハンバーガーボタンで開くモダール方式に切り替わる。
+*/
 @media (max-width: 768px) {
+    /* 1カラムに戻す。サイドバーは position:fixed で上書き表示 */
     .layout, .layout.no-toc {
         grid-template-columns: 1fr;
         grid-template-areas:
             "header"
             "main";
     }
+    /* 通常時は表示を隐す */
     .sidebar {
         display: none;
     }
+    /* サイドバートグルボタンで開くと open クラスが付き、position:fixed でオーバーレイ表示 */
     .sidebar.open {
         display: block;
         position: fixed;
-        inset: var(--header-height) 0 0 0;
+        inset: var(--header-height) 0 0 0; /* ヘッダー直下から画面下端まで */
         width: var(--sidebar-width);
-        z-index: 1000;
+        z-index: 1000; /* コンテンツより層 */
         overflow-y: auto;
     }
 }

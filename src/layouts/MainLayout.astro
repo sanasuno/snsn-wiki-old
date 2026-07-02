@@ -2,6 +2,19 @@
 /**
  * @layouts/MainLayout.astro
  * サイト全体のレイアウトを定義するファイル
+ *
+ * 役割:
+ *   すべてのページが利用する共通レイアウト。HTML の <head> タグ・ヘッダー・
+ *   サイドバー・メインコンテンツ・TOCパネルを一括して組み立てる。
+ *
+ * レイアウト構成 (CSS Grid):
+ *   [header  header  header ]
+ *   [sidebar  main    toc   ]  ← isWikiPage=true のとき
+ *   [sidebar  main          ]  ← isWikiPage=false (no-toc)
+ *
+ * レスポンシブ:
+ *   ≤1200px: TOCパネルを非表示 → フローティングドロワーで代替
+ *   ≤768px : サイドバーを非表示 → ハンバーガーメニューで代替
  */
 import { t, defaultLocale, type Locale } from '@i18n/i18n.config';
 import { removeTrailingSlash } from '@lib/path';
@@ -18,7 +31,22 @@ import 'katex/dist/katex.min.css';
 import '@styles/global.css';
 import '@styles/theme.css';
 
-// プロパティの型定義
+/**
+ * Props の型定義
+ *
+ * @property title            - ページタイトル（<title> タグ・OGPに使用）
+ * @property description      - ページ説明（省略時はサイト説明を使用）
+ * @property locale           - ロケール識別子（省略時は defaultLocale）
+ * @property alternateLinks   - hreflang 用の代替URLリスト（SEO対応）
+ * @property headings         - 目次（TOC）に使う見出し配列（MDXから渡す）
+ * @property tags             - タグ一覧（記事末尾に表示）
+ * @property categories       - カテゴリ一覧（パンくず・メタ欄に使用）
+ * @property date             - 記事の作成日
+ * @property updated          - 記事の更新日
+ * @property isFallbackContent - 翻訳がなくフォールバック表示しているか
+ * @property isWikiPage       - Wiki記事ページか（true のとき TOC パネルを表示）
+ * @property showMeta         - パンくず・タイトル・メタ情報を表示するか
+ */
 interface Props {
     title: string;
     description?: string;
@@ -50,24 +78,40 @@ const {
     showMeta = true,
 }: Props = Astro.props;
 
-// 基本URL設定
-const currentPath = removeTrailingSlash(Astro.url.pathname) || '/'; // 現在のパス
-const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL); // ベースURL
-const localeBaseUrl = `${baseUrl}/${locale}`; // ロケールごとのベースURL
-const wikiBaseUrl = `${localeBaseUrl}/wiki`; // wikiページのベースURL
-const canonicalUrl = Astro.url; // canonical URL
-// デフォルトの代替リンク
+// ──────────────────────────────────────────────
+// URL 体系の構築
+// ──────────────────────────────────────────────
+// 末尾スラッシュを除去して正規化。空文字の場合は '/' を使う
+const currentPath = removeTrailingSlash(Astro.url.pathname) || '/';
+// astro.config.ts の base オプション値（サブディレクトリ配置時に使用）
+const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
+// ロケール別のベースURL。例: '' + '/ja' → '/ja'
+const localeBaseUrl = `${baseUrl}/${locale}`;
+// Wikiページ用ベースURL。例: '/ja/wiki'
+const wikiBaseUrl = `${localeBaseUrl}/wiki`;
+// canonical URL（検索エンジン向けに正式URLを宣言）
+const canonicalUrl = Astro.url;
+
+// デフォルトロケールの代替リンクを探して x-default hreflang に設定
 const defaultAlternateLink = alternateLinks.find((link) => link.locale === defaultLocale);
 
-// 目次パネルの表示判定
+// ──────────────────────────────────────────────
+// レイアウト制御フラグ
+// ──────────────────────────────────────────────
+// Wikiページのみ TOCパネル（右カラム）を表示する
 const hasTocPanel = isWikiPage;
 
-// OGPで表示する名前と説明文
-const siteTitle = t('site.title', locale) ?? t('site.title', defaultLocale); // サイトタイトル
-const siteDescription = t('site.description', locale) ?? t('site.description', defaultLocale); // サイト説明
-const pageTitle = `${title} | ${siteTitle}`; // ページタイトル
-const pageDescription = description ?? siteDescription; // ページ説明
-const ogpImageUrl = new URL('/ogp.png', Astro.site).href; // OGP画像URL
+// ──────────────────────────────────────────────
+// OGP / <title> タグ用テキスト
+// ──────────────────────────────────────────────
+// i18n でロケール優先、なければデフォルトロケールにフォールバック
+const siteTitle = t('site.title', locale) ?? t('site.title', defaultLocale);
+const siteDescription = t('site.description', locale) ?? t('site.description', defaultLocale);
+// ブラウザタブと OGP に表示するページタイトル
+const pageTitle = `${title} | ${siteTitle}`;
+const pageDescription = description ?? siteDescription;
+// Astro.site が設定されている場合のみ有効（astro.config.ts の site オプション）
+const ogpImageUrl = new URL('/ogp.png', Astro.site).href;
 ---
 <!DOCTYPE html>
 <html lang={locale} data-lang={locale} data-default-locale={defaultLocale}>
@@ -110,15 +154,22 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href; // OGP画像URL
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Noto+Sans+JP:wght@100..900&family=Noto+Serif+JP:wght@200..900&display=swap" rel="stylesheet">
         
-        <!-- テーマ初期化 -->
+        <!--
+            テーマ初期化スクリプト
+            ※ is:inline を使うことで Astro のバンドルを経ず <head> に直接埋め込まれる。
+              CSS より前にテーマを設定することでライト/ダーク切替時のちらつき（FOUC）を防ぐ。
+            優先順位:
+              1. localStorage に 'theme' が保存されていればそれを使用
+              2. 未設定の場合は OS の prefers-color-scheme に従う
+        -->
         <script is:inline>
             (function() {
                 const savedTheme = localStorage.getItem('theme');
                 if (savedTheme === 'dark' || savedTheme === 'light') {
-                    // 保存されたテーマがある場合、そのテーマを使用
+                    // 前回保存されたテーマを復元
                     document.documentElement.setAttribute('data-theme', savedTheme);
                 } else if (!savedTheme) {
-                    // テーマ未設定の場合はOSの設定を優先
+                    // 未設定の場合は OS の設定を優先
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                     document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
                 }
@@ -132,15 +183,20 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href; // OGP画像URL
         </script>
     </head>
     <body>
+        {/*
+          .layout: CSS Grid で全体を組む
+            - hasTocPanel=true  → 3カラム (sidebar / main / toc)
+            - hasTocPanel=false → 2カラム (sidebar / main) に .no-toc クラスを付与
+        */}
         <div class={`layout${hasTocPanel ? '' : ' no-toc'}`}>
-            <!-- ヘッダー -->
+            {/* ヘッダー: sticky で画面上部に固定 */}
             <Header 
                 locale={locale} 
                 localeBaseUrl={localeBaseUrl} 
                 currentPath={currentPath}
             />
 
-            <!-- サイドバー -->
+            {/* サイドバー: 左カラム。ナビゲーション設定は sidebar.config.ts で管理 */}
             <Sidebar 
                 locale={locale} 
                 localeBaseUrl={localeBaseUrl} 
@@ -148,9 +204,9 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href; // OGP画像URL
                 currentPath={currentPath}
             />
             
-            <!-- メインパネル -->
+            {/* メインパネル: 中央カラム。コンテンツとフッターを縦積み */}
             <main class="main-panel">
-                <!-- メインコンテンツ -->
+                {/* ページ本文（パンくず・タイトル・記事・タグ）*/}
                 <MainContent 
                     title={title} 
                     locale={locale}
@@ -164,24 +220,29 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href; // OGP画像URL
                     isWikiPage={isWikiPage}
                     showMeta={showMeta}
                 >
+                    {/* 各ページ固有のコンテンツはスロット経由で挿入 */}
                     <slot />
                 </MainContent>
 
-                <!-- フッター -->
+                {/* フッター: メインパネルの最下部 */}
                 <Footer
                     locale={locale}
                     localeBaseUrl={localeBaseUrl}
                 />
             </main>
 
-            <!-- 目次パネル -->
+            {/*
+              目次パネル (右カラム): Wikiページのみ表示
+              ≤1200px ではグリッドから外れてスライドドロワーになる
+            */}
             {hasTocPanel && (
                 <aside class="toc-panel" id="toc-panel">
+                    {/* h2〜h4 の目次。スクロールに合わせてアクティブ項目をハイライト */}
                     <Toc 
                         headings={headings} 
                         locale={locale} 
                     />
-                    <!-- ミニグラフ -->
+                    {/* 現在ページを中心としたリンクグラフの可視化 */}
                     <MiniGraph 
                         locale={locale} 
                         localeBaseUrl={localeBaseUrl} 
@@ -189,8 +250,10 @@ const ogpImageUrl = new URL('/ogp.png', Astro.site).href; // OGP画像URL
                     />
                 </aside>
             )}
+            {/* Mermaid 記法のコードブロックを SVG に変換するレンダラー */}
             <MermaidRenderer />
         </div>
+        {/* メインスクリプト: テーマ・サイドバー・TOC・コードブロックなどを初期化 */}
         <script>
             import "@scripts/main"
         </script>
