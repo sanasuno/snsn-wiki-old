@@ -8,7 +8,7 @@ import { locales, defaultLocale, type Locale } from '@i18n/i18n.config';
 import { isLocale } from '@lib/locale';
 import MainLayout from '@layouts/MainLayout.astro';
 import type { GetStaticPathsResult } from 'astro';
-import { removeTrailingSlash } from '@scripts/utils';
+import { removeTrailingSlash } from '@lib/path';
 import { getCategoryFromId } from '@lib/category';
 
 interface Props {

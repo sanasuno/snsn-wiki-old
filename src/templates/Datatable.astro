@@ -1,8 +1,8 @@
 ---
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { transformCell } from './ts/datatable';
-import type { ColumnDef, FilterDef, TableConfig } from './ts/datatable';
+import { transformCell } from '@lib/datatable';
+import type { ColumnDef, FilterDef, TableConfig } from '@lib/datatable';
 
 interface Props {
     src: string
@@ -71,6 +71,31 @@ const processedRows = sortedRows.map(row => ({
 
 const filtersJson = JSON.stringify(filters);
 const columnsJson = JSON.stringify(columns.map(c => ({ key: c.key, label: c.label })));
+
+const dtJsonCache = new Map<string, { rows: any[]; config: TableConfig }>();
+function loadTabledata(src: string, dataDir: string) {
+    if (dtJsonCache.has(src)) return dtJsonCache.get(src)!;
+    const dataPath = resolve(dataDir, `${src}.json`);
+    const configPath = resolve(dataDir, `${src}-table.json`);
+    const missing = !existsSync(dataPath)
+        ? `${src}.json`
+        : !existsSync(configPath)
+            ? `${src}-table.json`
+            : null;
+    const result = missing
+        ? {
+            rows: [],
+            config: { columns: [] } as TableConfig,
+            missing
+        }
+        : {
+            rows: JSON.parse(readFileSync(dataPath, 'utf-8')),
+            config: JSON.parse(readFileSync(configPath, 'utf-8')) as TableConfig,
+            missing: null
+        };
+    dtJsonCache.set(src, result);
+    return result;
+}
 ---
 {missing
     ? <span class="datatable-error">Datatable: {missing} not found</span>

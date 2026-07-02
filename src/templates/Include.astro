@@ -1,9 +1,9 @@
 ---
 import { getEntry, render } from "astro:content";
-import { AsyncLocalStorage } from "node:async_hooks";
 import { resolveSlug } from "@lib/slug/slugCore";
 import { buildSlugMapSync } from "@lib/slug/slugmap";
 import { defaultLocale, locales, type Locale } from "@i18n/i18n.config";
+import { isInChain, withIncludeChain } from "@lib/includeChain";
 
 interface Props {
     slug: string
@@ -31,8 +31,6 @@ const currentRouteSlug = typeof Astro.params.slug === "string" && Astro.params.s
 const normalizeWikiSlug = (value: string) => value.replace(/\/index$/, "") || "index";
 const isSelfInclude = normalizeWikiSlug(currentRouteSlug) === normalizeWikiSlug(baseSlug);
 
-const includeChain = new AsyncLocalStorage<Set<string>>();
-
 let entry = isSelfInclude ? undefined : await getEntry('wiki', `${requestedLocale}/${baseSlug}`)
 if (!entry && requestedLocale !== defaultLocale) {
     entry = await getEntry('wiki', `${defaultLocale}/${baseSlug}`)
@@ -55,17 +53,6 @@ if (entry) {
     const entryLocale = resolvedParts[0];
     const entryBaseSlug = resolvedParts.slice(1).join('/');
     wikiUrl = `${baseUrl}/${entryLocale}/wiki/${entryBaseSlug.replace(/\/index$/, "")}`;
-}
-
-function isInChain(fullSlug: string): boolean {
-    return includeChain.getStore()?.has(fullSlug) ?? false;
-}
-
-async function withIncludeChain<T>(fullSlug: string, fn: () => Promise<T>): Promise<T> {
-    const current = includeChain.getStore() ?? new Set<string>();
-    const next = new Set(current);
-    next.add(fullSlug);
-    return includeChain.run(next, fn);
 }
 
 const isCircular = entry && isInChain(entry.id);

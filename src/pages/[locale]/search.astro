@@ -4,7 +4,7 @@
  */
 import { t, locales, type Locale } from '@i18n/i18n.config';
 import MainLayout from '@layouts/MainLayout.astro';
-import { removeTrailingSlash } from '@scripts/utils';
+import { removeTrailingSlash } from '@lib/path';
 import type { GetStaticPathsResult } from 'astro';
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {

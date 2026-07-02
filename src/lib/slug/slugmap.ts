@@ -139,25 +139,6 @@ function getWikiLatestMtime(dir: string): number {
 }
 
 /**
- * Wikiディレクトリ内のMD/MDXファイルの数を取得する関数
- * @param dir Wikiディレクトリのパス
- * @returns MD/MDXファイルの数
- */
-function getWikiFileCount(dir: string): number {
-    let count = 0;
-    if (!fs.existsSync(dir)) return count;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-            count += getWikiFileCount(fullPath);
-        } else if (/\.(md|mdx)$/.test(entry.name)) {
-            count++;
-        }
-    }
-    return count;
-}
-
-/**
  * Wikiディレクトリ内のMD/MDXファイルのパスを再帰的に取得する関数
  * @param dir Wikiディレクトリのパス
  * @param prefix プレフィックス（階層パス）
@@ -218,22 +199,21 @@ function buildCache(): SlugmapCache {
     // ディレクトリが存在しない場合は空のキャッシュを返す
     if (!fs.existsSync(WIKI_DIR)) {
         // ロケールを取得
-        const locales = fs.readdirSync(WIKI_DIR, { withFileTypes: true })
+        const localeDirs = fs.readdirSync(WIKI_DIR, { withFileTypes: true })
             .filter(dir => dir.isDirectory())
             .map(dir => dir.name);
         // ロケールごとにスキャン
-        for (const locale of locales) {
-            // ロケールディレクトリパスを取得
-            const localeDir = path.join(WIKI_DIR, locale);
+        for (const localeDir of localeDirs) {
+            const fullLocaleDir = path.join(WIKI_DIR, localeDir);
             // 全ページ（draft/hidden含む）のslugを収録
             const allLocaleSlugs = new Set<string>();
-            const localeMap = scanWikiFiles(localeDir, allLocaleSlugs, locale, false);
+            const localeMap = scanWikiFiles(fullLocaleDir, allLocaleSlugs, localeDir, false);
             Object.assign(map, localeMap);
             // 公開ページのみのスラッグを収録
             const publishedLocaleSlugs = new Set<string>();
-            scanWikiFiles(localeDir, publishedLocaleSlugs, locale, true);
+            scanWikiFiles(fullLocaleDir, publishedLocaleSlugs, localeDir, true);
             for (const slug of publishedLocaleSlugs) {
-                slugs.add(`${locale}/${slug}`);
+                slugs.add(`${localeDir}/${slug}`);
             }
         }
     }

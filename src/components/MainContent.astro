@@ -176,9 +176,7 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                                                 <!-- カテゴリページへのリンク -->
                                                 <i class="fa-solid fa-folder" />
                                                 <a href={crumb.href}>
-                                                    {tCategory(crumb.label, locale) !== crumb.label 
-                                                        ? tCategory(crumb.label, locale) 
-                                                        : crumb.label}
+                                                    {tCategory(crumb.label, locale)}
                                                 </a>
                                             </>
                                         ) : ( // その他のセグメントの場合、そのままリンク
@@ -208,9 +206,7 @@ const crumbs: Crumb[] = buildCrumbs(currentPath, title, localeBaseUrl, isWikiPag
                     <div class="page-category">
                         <a href={`${localeBaseUrl}/category/${leafCategory.path}`}>
                             <i class="fa-regular fa-folder" />
-                            {tCategory(leafCategory.name, locale) !== leafCategory.name 
-                                ? tCategory(leafCategory.name, locale) 
-                                : leafCategory.name}
+                            {tCategory(leafCategory.name, locale)}
                         </a>
                     </div>
                 )}

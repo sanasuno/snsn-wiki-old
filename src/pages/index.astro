@@ -6,7 +6,7 @@
  */
 
 import { locales, defaultLocale } from "@i18n/i18n.config";
-import { removeTrailingSlash } from "@scripts/utils";
+import { removeTrailingSlash } from "@lib/path";
 const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
 ---
 <script is:inline define:vars={{ locales, defaultLocale, baseUrl }}>

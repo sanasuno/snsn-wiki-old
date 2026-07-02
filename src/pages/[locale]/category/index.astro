@@ -7,7 +7,7 @@ import { getCollection } from 'astro:content';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MainLayout from '@layouts/MainLayout.astro';
 import { t, tCategory, locales, formatDate, type Locale } from '@i18n/i18n.config';
-import { getRoute, removeTrailingSlash } from '@scripts/utils';
+import { getRoute, removeTrailingSlash } from '@lib/path';
 import { getCategoryFromId } from '@lib/category';
 import { getUniquePagesByLocale } from '@lib/pages';
 
@@ -71,7 +71,7 @@ const sortedCategories = Object.entries(categoryMap).sort(([a], [b]) =>
 			<section>
 				<a href={`${localeBaseUrl}/category/${encodeURIComponent(cat)}`} class="index-page-category">
 					<i class="fa-solid fa-folder" />
-					{tCategory(cat, locale) !== cat ? tCategory(cat, locale) : cat}
+					{tCategory(cat, locale)}
 					<span>({catPages.length} {t('category.count.page', locale)})</span>
 				</a>
 				<ul class="index-list">

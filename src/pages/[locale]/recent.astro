@@ -7,8 +7,8 @@ import MainLayout from "@layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { t, locales, formatDate, type Locale } from "@i18n/i18n.config";
-import { removeTrailingSlash } from "@scripts/utils";
-import { getRoute } from "@scripts/utils";
+import { removeTrailingSlash } from "@lib/path";
+import { getRoute } from "@lib/path";
 import { getUniquePagesByLocale } from "@lib/pages";
 
 export const getStaticPaths = () => {

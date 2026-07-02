@@ -7,7 +7,7 @@ import { getCollection } from 'astro:content';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import MainLayout from '@layouts/MainLayout.astro';
 import { t, tCategory, locales, formatDate, type Locale } from '@i18n/i18n.config';
-import { getRoute, removeTrailingSlash } from '@scripts/utils';
+import { getRoute, removeTrailingSlash } from '@lib/path';
 import { getCategoryFromId, matchCategory } from '@lib/category';
 import { getUniquePagesByLocale } from '@lib/pages';
 
@@ -90,7 +90,7 @@ const alternateLinks = locales.map((loc) => ({
 ---
 <MainLayout
     title={t("category.title", locale)}
-    description={`${t("category.description", locale)} - ${tCategory(categoryLabel, locale) !== categoryLabel ? tCategory(categoryLabel, locale) : categoryLabel}`}
+    description={`${t("category.description", locale)} - ${tCategory(categoryLabel, locale)}`}
     locale={locale}
     alternateLinks={alternateLinks}
     showMeta={false}
@@ -103,9 +103,7 @@ const alternateLinks = locales.map((loc) => ({
                 ? (
                     <a href={`${localeBaseUrl}/category/${filterCategory.slice(0, -1).join('/')}`}>
                         <i class="fa-solid fa-arrow-left" />
-                        {tCategory(filterCategory[filterCategory.length - 2], locale) !== filterCategory[filterCategory.length - 2]
-                            ? tCategory(filterCategory[filterCategory.length - 2], locale)
-                            : filterCategory[filterCategory.length - 2]}
+                        {tCategory(filterCategory[filterCategory.length - 2], locale)}
                     </a>
                 ) : (
                     <a href={`${localeBaseUrl}/category`}>
@@ -125,10 +123,10 @@ const alternateLinks = locales.map((loc) => ({
                         {index > 0 && <span class="category-separator"> / </span>}
                         {isLast
                             ? <span>
-                                {tCategory(cat, locale) !== cat ? tCategory(cat, locale) : cat}
+                                {tCategory(cat, locale)}
                             </span>
                             : <a href={`${localeBaseUrl}/category/${catPath}`}>
-                                {tCategory(cat, locale) !== cat ? tCategory(cat, locale) : cat}
+                                {tCategory(cat, locale)}
                             </a>
                         }
                     </>
@@ -149,7 +147,7 @@ const alternateLinks = locales.map((loc) => ({
                 {childCategories.map(({ name, path, count }) => (
                     <a href={`${localeBaseUrl}/category/${path}`} class="index-page-category">
                         <i class="fa-solid fa-folder" />
-                        {tCategory(name, locale) !== name ? tCategory(name, locale) : name}
+                        {tCategory(name, locale)}
                         <span>({count} {t('category.count.page', locale)})</span>
                     </a>
                 ))}
