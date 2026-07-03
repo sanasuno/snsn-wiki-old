@@ -86,12 +86,12 @@ export function extractWikiLinks(
 export function remarkWikiLinks(options: { base?: string } = {}) {
     // 末尾のスラッシュを除去してベースパスを正規化
     const base = options.base?.replace(/\/$/, '') ?? '';
-    // ビルド時に同期的にスラッグマップと公開済みスラッグの情報を取得
-    const slugMap = buildSlugMapSync();
-    const existingSlugs = buildPublishedSlugs();
 
     // Unified / Remark のプラグイン関数を返す
     return (tree: Root, file: VFile) => {
+        // ビルド時に同期的にスラッグマップと公開済みスラッグの情報を取得
+        const slugMap = buildSlugMapSync();
+        const existingSlugs = buildPublishedSlugs();
         // 現在処理しているMarkdownファイルの絶対パスを取得
         const filePath = file?.path || file?.history?.[0] || '';
         // ファイルパスから現在のロケール（言語コード、例: 'ja' または 'en'）を抽出

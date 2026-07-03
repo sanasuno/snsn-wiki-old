@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { transformCell } from '@lib/datatable';
 import type { ColumnDef, FilterDef, TableConfig } from '@lib/datatable';
+import { loadDataJson } from '@lib/jsonDataCache';
 
 interface Props {
     src: string
@@ -27,8 +28,8 @@ const missing = !existsSync(dataPath)
 let rows: Record<string, any>[] = [];
 let config: TableConfig = { columns: [] };
 if (!missing) {
-    rows = JSON.parse(readFileSync(dataPath, 'utf-8'));
-    config = JSON.parse(readFileSync(configPath, 'utf-8'));
+    rows = loadDataJson(src) ?? [];
+    config = loadDataJson(`${src}-table`) ?? { columns: [] };
 }
 
 const columns: ColumnDef[] = config.columns ?? [];

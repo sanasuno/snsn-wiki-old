@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { slugify, toRealSlug, resolveSlug, type SlugMap } from './slugCore';
-import { parseNormalizedFrontmatter } from '../frontmatterUtils';
+import { parseNormalizedFrontmatter } from '../content/frontmatterUtils';
 
 export { slugify, toRealSlug, resolveSlug, type SlugMap };
 

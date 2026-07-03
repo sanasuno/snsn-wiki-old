@@ -8,7 +8,7 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import MainLayout from '@layouts/MainLayout.astro';
 import { t, locales, formatDate, type Locale } from '@i18n/i18n.config';
 import { getRoute, removeTrailingSlash } from '@lib/path';
-import { getUniquePagesByLocale } from '@lib/pages';
+import { getUniquePagesByLocale } from '@lib/content/pages';
 
 export async function getStaticPaths() {
 	const pages = await getCollection('wiki', (p) => !p.data.draft && !p.data.hidden);

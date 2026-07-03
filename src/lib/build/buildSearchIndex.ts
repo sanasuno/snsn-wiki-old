@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { locales, type Locale} from '../../i18n/i18n.config';
-import { parseNormalizedFrontmatter } from '../frontmatterUtils';
+import { parseNormalizedFrontmatter } from '../content/frontmatterUtils';
 import type { SearchEntry } from '../../types/search';
 import { slugify } from '../slug/slugCore';
 

@@ -8,8 +8,8 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import MainLayout from '@layouts/MainLayout.astro';
 import { t, tCategory, locales, formatDate, type Locale } from '@i18n/i18n.config';
 import { getRoute, removeTrailingSlash } from '@lib/path';
-import { getCategoryFromId, matchCategory } from '@lib/category';
-import { getUniquePagesByLocale } from '@lib/pages';
+import { getCategoryFromId, matchCategory } from '@lib/content/category';
+import { getUniquePagesByLocale } from '@lib/content/pages';
 
 // ロケールごとの静的パスを生成
 export async function getStaticPaths() {

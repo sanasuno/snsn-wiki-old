@@ -3,7 +3,7 @@ import { getEntry, render } from "astro:content";
 import { resolveSlug } from "@lib/slug/slugCore";
 import { buildSlugMapSync } from "@lib/slug/slugmap";
 import { defaultLocale, locales, type Locale } from "@i18n/i18n.config";
-import { isInChain, withIncludeChain } from "@lib/includeChain";
+import { isInChain, withIncludeChain } from "@lib/content/includeChain";
 
 interface Props {
     slug: string
@@ -41,11 +41,6 @@ if (!entry) {
 
 let Content: any = null
 let resolvedFullSlug = "";
-if (entry) {
-    const rendered = await render(entry)
-    Content = rendered.Content
-    resolvedFullSlug = entry.id
-}
 
 let wikiUrl = "";
 if (entry) {
@@ -55,7 +50,7 @@ if (entry) {
     wikiUrl = `${baseUrl}/${entryLocale}/wiki/${entryBaseSlug.replace(/\/index$/, "")}`;
 }
 
-const isCircular = entry && isInChain(entry.id);
+const isCircular = entry ? isInChain(entry.id) : false;
 if (entry && !isCircular) {
     const rendered = await withIncludeChain(entry.id, () => render(entry));
     Content = rendered.Content;

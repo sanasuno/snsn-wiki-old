@@ -12,8 +12,8 @@ import { getCollection } from "astro:content";
 import { t, tDynamic, tCategory, type Locale } from "@i18n/i18n.config";
 import { sidebarNavigation, autoAddUnknownCategories, autoGroupByLeafCategory } from "@layouts/sidebar.config";
 import { removeTrailingSlash, getRoute, getBaseSlug } from "@lib/path";
-import { getCategoryFromId } from "@lib/category";
-import { getUniquePagesByLocale } from "@lib/pages";
+import { getCategoryFromId } from "@lib/content/category";
+import { getUniquePagesByLocale } from "@lib/content/pages";
 
 interface Props { 
     locale: Locale;
