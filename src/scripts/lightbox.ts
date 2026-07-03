@@ -9,8 +9,8 @@ export function lightbox() {
     var overlay = document.createElement('div');
     overlay.id = 'lightbox-overlay';
     overlay.innerHTML = 
-        '<button class="lightbox-close" aria-label="close"><i class="fa-solid fa-xmark" /></button>' + 
         '<div class="lightbox-inner">' + 
+        '<button class="lightbox-close" aria-label="close"><i class="fa-solid fa-xmark"></i></button>' + 
         '<img class="lightbox-img" src="" alt="" />' + 
         '<p class="lightbox-caption"></p>' + 
         '</div>';
