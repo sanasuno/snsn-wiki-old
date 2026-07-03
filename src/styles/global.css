@@ -1035,7 +1035,7 @@ pre[data-language]:hover .code-copy-button {
 }
 
 .lightbox-img {
-  max-width: 100%;
+  max-width: auto;
   max-height: 80vh;
   object-fit: contain;
   border-radius: 4px;
