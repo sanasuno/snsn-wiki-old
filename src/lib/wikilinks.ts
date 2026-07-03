@@ -16,6 +16,18 @@ const WIKILINK_PATTERN_SOURCE = '\\[\\[([^\\]|#]+)(?:#([^\\]|]*))?(?:\\|([^\\]]*
 // ==============================
 
 /**
+ * コードブロック・インラインコードの中身を除去する
+ * @param text 
+ * @returns 
+ */
+function stripCodeSpans(text: string): string {
+    return text
+        .replace(/```[\s\S]*?```/g, '') // フェンス付きコードブロックを除去
+        .replace(/`[^`\n]+`/g, ''); // インラインコードを除去
+}
+
+
+/**
  * マークダウン本文からWikiリンクの参照先スラッグ一覧を抽出
  * バックリンク・グラフデータ構築に使用
  * @param body マークダウン本文
@@ -34,12 +46,13 @@ export function extractWikiLinks(
     const map = slugMap || buildSlugMapSync();
     const slugs = existingSlugs || buildPublishedSlugs();
     const links: string[] = [];
-
+    
+    const cleanBody = stripCodeSpans(body);
     
     // regexでマッチしたすべてのWikiリンクを処理
     let match: RegExpExecArray | null;
     const PATTERN = new RegExp(WIKILINK_PATTERN_SOURCE, 'g'); // [[Page Name]] や [[Page Name|表示名]] [[Page Name#section]] などのWikiリンク
-    while ((match = PATTERN.exec(body)) !== null) {
+    while ((match = PATTERN.exec(cleanBody)) !== null) {
         // ページ名からスラッグを取得
         const pageName = match[1].trim();
         const rawSlug = resolveSlug(pageName, map);
