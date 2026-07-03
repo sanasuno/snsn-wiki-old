@@ -309,7 +309,7 @@ function renderResults(entries: SearchEntry[], query: string) {
     }
     const count = entries.length;
     const countLabel = `${count} ${t('search.countlabel', locale)}`;
-    showStatusText(`<i class="fa-solid fa-check" style="color:var(--color-accent)" /> ${countLabel}`);
+    showStatusText(`<i class="fa-solid fa-check" style="color:var(--color-accent)"></i> ${countLabel}`);
 
     // 検索結果を描画
     for (const entry of entries) {
