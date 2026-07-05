@@ -20,10 +20,10 @@
 
     /**
      * コードブロックからソースを抽出する関数
-     * @param {HTMLElement} pre - コードブロック要素
+     * @param {Element} pre - コードブロック要素
      * @returns {string} コードソース
      */
-    function extractSource(pre: HTMLElement) {
+    function extractSource(pre: Element) {
         const lines = pre.querySelectorAll('.line');
         // .line要素が存在する場合、それらのテキストコンテンツを結合する
         if (lines.length > 0) {
@@ -35,70 +35,47 @@
     let counter = 0;
 
     /**
-     * すべてのMermaid図をレンダリングする関数
+     * Mermaid図をレンダリングする関数
+     * @param selector - 対象の要素セレクタ
+     * @param getSource - 要素からソースを取得する関数
+     * @param replaceKind - 置換する要素の種類
      */
-    async function renderAll() {
+    async function renderMermaidBlocks(selector: string, getSource: (el: Element) => string, replaceKind: 'pre' | 'div') {
         mermaid.initialize({
             startOnLoad: false,
             theme: getTheme(),
             securityLevel: 'loose'
         });
 
-        const blocks = document.querySelectorAll('pre[data-language="mermaid"]');
-        for (const pre of blocks) {
-            const source = extractSource(pre as HTMLElement);
+        const blocks = document.querySelectorAll(selector);
+        for (const el of blocks) {
+            const source = getSource(el);
+            if (!source) continue;
             const id = `mermaid-${counter++}`;
             try {
-                // Mermaid図をレンダリングする
                 const { svg } = await mermaid.render(id, source);
                 const wrapper = document.createElement('div');
                 wrapper.className = 'mermaid';
                 wrapper.dataset.mermaidSource = source;
                 wrapper.innerHTML = svg;
-                pre.parentNode?.replaceChild(wrapper, pre);
-            } catch (error) {
-                // エラーが発生した場合、エラーメッセージを表示する
-                const msg = document.createElement('pre');
-                msg.className = 'mermaid-error';
-                msg.textContent = `Mermaid rendering failed: ${(error as Error).message}`;
-                pre.parentNode?.replaceChild(msg, pre);
-                console.error('Mermaid rendering failed:', error);
+                el.parentNode?.replaceChild(wrapper, el);
+            } catch(error) {
+                if (replaceKind === 'pre') {
+                    const msg = document.createElement('pre');
+                    msg.className = 'mermaid-error';
+                    msg.textContent = `Mermaid rendering failed: ${(error as Error).message}`;
+                    el.parentNode?.replaceChild(msg, el);
+                }
+                console.error('Mermaid render error:', error);
             }
         }
     }
 
-    /**
-     * Mermaid図をレンダリングする関数
-     */
-    async function renderer() {
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: getTheme(),
-            securityLevel: 'loose'
-        });
-        const diagrams = document.querySelectorAll('.mermaid');
-        for (const diagram of diagrams) {
-            // データ属性からソースを取得する
-            const source = (diagram as HTMLElement).dataset.mermaidSource;
-            if (!source) continue;
-            const id = `mermaid-${counter++}`;
-            try {
-                // Mermaid図をレンダリングする
-                const { svg } = await mermaid.render(id, source);
-                const next = document.createElement('div');
-                next.className = 'mermaid';
-                next.dataset.mermaidSource = source;
-                next.innerHTML = svg;
-                diagram.parentNode?.replaceChild(next, diagram);
-            } catch (error) {
-                console.error('Mermaid rendering failed:', error);
-            }
-        }
-    }
+    renderMermaidBlocks('pre[data-language="mermaid"]', extractSource, 'pre');
 
-    renderAll();
-    // テーマ切り替え時にレンダリングする
     document.getElementById('theme-toggle')?.addEventListener('click', () => {
-        setTimeout(renderer, 0);
-    });
+        setTimeout(() => {
+            renderMermaidBlocks('.mermaid', (el) => (el as HTMLElement).dataset.mermaidSource ?? '', 'div');
+        })
+    })
 </script>
