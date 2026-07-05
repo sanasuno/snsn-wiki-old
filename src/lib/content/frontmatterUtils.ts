@@ -1,5 +1,5 @@
 /**
- * @lib/frontmatterUtils
+ * @lib/content/frontmatterUtils.ts
  * Frontmatter関連のユーティリティ関数
  */
 import { parseFrontmatter } from "astro/markdown";

@@ -1,5 +1,5 @@
 /**
- * @lib/slugCore
+ * @lib/slug/slugCore.ts
  * fs/path に依存しない純粋なスラッグ変換ロジック
  */
 

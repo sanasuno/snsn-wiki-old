@@ -40,21 +40,16 @@ if (!entry) {
 }
 
 let Content: any = null
-let resolvedFullSlug = "";
-
 let wikiUrl = "";
-if (entry) {
-    const resolvedParts = resolvedFullSlug.split('/');
-    const entryLocale = resolvedParts[0];
-    const entryBaseSlug = resolvedParts.slice(1).join('/');
-    wikiUrl = `${baseUrl}/${entryLocale}/wiki/${entryBaseSlug.replace(/\/index$/, "")}`;
-}
 
 const isCircular = entry ? isInChain(entry.id) : false;
 if (entry && !isCircular) {
     const rendered = await withIncludeChain(entry.id, () => render(entry));
     Content = rendered.Content;
-    resolvedFullSlug = entry.id;
+
+    const [entryLocale, ...rest] = entry.id.split('/');
+    const entryBaseSlug = rest.join('/');
+    wikiUrl = `${baseUrl}/${entryLocale}/wiki/${entryBaseSlug.replace(/\/index$/, "")}`;
 }
 ---
 {isSelfInclude && (

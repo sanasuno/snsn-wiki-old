@@ -1,5 +1,5 @@
 /**
- * @scripts/utils
+ * @lib/path.ts
  * 共通のユーティリティ関数
  */
 import { locales, type Locale } from "@i18n/i18n.config";

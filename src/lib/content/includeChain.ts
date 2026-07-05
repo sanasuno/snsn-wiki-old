@@ -1,3 +1,7 @@
+/**
+ * @lib/content/includeChain.ts
+ * includeChainを管理するためのAsyncLocalStorage
+ */
 import { AsyncLocalStorage } from 'async_hooks';
 
 export const includeChain = new AsyncLocalStorage<Set<string>>();

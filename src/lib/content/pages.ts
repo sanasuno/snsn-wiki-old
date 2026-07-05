@@ -1,5 +1,5 @@
 /**
- * @srcipts/pages.ts
+ * @lib/content/pages.ts
  * 
  * ページ関連のユーティリティ関数
  */

@@ -1,7 +1,7 @@
 ---
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { loadDataJson } from '@lib/jsonDataCache';
+import { loadDataJson } from '@lib/json/jsonDataCache';
 
 interface Field {
     label: string
@@ -25,69 +25,22 @@ const { src, id, ...direct } = Astro.props as Props;
 
 let data: InfoboxData = {}
 
-// キャッシュを使用したJSON読み込み
-type LoadResult = { ok: true; data: any } | { ok: false; error: string }
-const jsonCache = new Map<string, any>();
-
-/**
- * JSONファイルを読み込む
- * @param src JSONファイルのパス
- * @returns 読み込んだデータまたはエラー
- */
-function loadJson(src: string): LoadResult {
-    const cached = jsonCache.get(src);
-    if (cached) return cached;
-
-    const jsonPath = resolve(process.cwd(), `src/data/${src}.json`)
-    if (!existsSync(jsonPath)) {
-        const result: LoadResult = {
-            ok: false,
-            error: `JSON file not found: ${jsonPath}`
-        }
-        jsonCache.set(src, result);
-        return result;
-    }
-    let result: LoadResult;
-    try {
-        result = {
-            ok: true,
-            data: JSON.parse(readFileSync(jsonPath, 'utf-8'))
-        }
-    }
-    catch (error) {
-        result = {
-            ok: false,
-            error: `Failed to parse JSON: src/data/${src}.json`
-        };
-    }
-    jsonCache.set(src, result);
-    return result;
-}
-
 if (src) {
-    const result = loadJson(src)
-    if (result.ok) {
-        const jsonData = result.data;
-        if (Array.isArray(jsonData) && id) {
-            const found = jsonData.find(item => item.id === id)
-            if (found) {
-                data = {
-                    title: found.name,
-                    fields: Object.entries(found)
-                        .filter(([key]) => key !== 'id' && key !== 'name')
-                        .map(([label, value]) => ({
-                            label,
-                            value: String(value)
-                        }))
-                }
-            } else {
-                data = { title: `Not found: id=${id} in ${src}.json` }
+    const jsonData = loadDataJson<any>(src);
+    if (jsonData == null) {
+        data = { title: `JSON file not found: src/data/${src}.json` };
+    } else if (Array.isArray(jsonData) && id) {
+        const found = jsonData.find(item => item.id === id);
+        data = found 
+            ? {
+                title: found.name,
+                fields: Object.entries(found)
+                    .filter(([key]) => key !== 'id' && key !== 'name')
+                    .map(([label, value]) => ({ label, value: String(value) })),
             }
-        } else {
-            data = jsonData
-        }
+            : { title: `Item not found: id = ${id} in ${src}.json` };
     } else {
-        data = { title: result.error }
+        data = jsonData;
     }
 }
 

@@ -1,5 +1,5 @@
 /**
- * @scripts/category
+ * @lib/content/category.ts
  * カテゴリ関連のユーティリティ関数
  */
 
