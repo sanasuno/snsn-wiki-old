@@ -38,5 +38,5 @@ export type SlugMap = Record<string, string>;
  */
 export function resolveSlug(text: string, map: SlugMap): string {
     const key = slugify(text);
-    return map[key] || text;
+    return map[key] || key;
 }
