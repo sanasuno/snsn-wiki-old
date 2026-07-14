@@ -40,8 +40,7 @@ const baseUrl = removeTrailingSlash(import.meta.env.BASE_URL);
 const localeBaseUrl = `${baseUrl}/${locale}`;
 const wikiBaseUrl = `${localeBaseUrl}/wiki`;
 
-const filterTag = tag.split('/');
-const tagLabel = filterTag[filterTag.length - 1];
+const tagLabel = tag;
 
 // ロケール優先で重複排除
 const sortedPages = getUniquePagesByLocale(tagPages, locale).sort((a, b) =>

@@ -4,6 +4,7 @@ import { resolveSlug } from "@lib/slug/slugCore";
 import { buildSlugMapSync } from "@lib/slug/slugmap";
 import { defaultLocale, locales, type Locale } from "@i18n/i18n.config";
 import { isInChain, withIncludeChain } from "@lib/content/includeChain";
+import { getEntries } from "astro:content";
 
 interface Props {
     slug: string
@@ -25,18 +26,28 @@ const requestedLocale = locales.includes(locale as Locale)
 const slugMap = buildSlugMapSync()
 const baseSlug = resolveSlug(slug, slugMap)
 
+const currentLocale = locales.includes(Astro.params.locale as Locale)
+    ? Astro.params.locale as Locale
+    : defaultLocale;
+
 const currentRouteSlug = typeof Astro.params.slug === "string" && Astro.params.slug.length > 0
     ? Astro.params.slug
     : "index";
 const normalizeWikiSlug = (value: string) => value.replace(/\/index$/, "") || "index";
-const isSelfInclude = normalizeWikiSlug(currentRouteSlug) === normalizeWikiSlug(baseSlug);
+const isSelfInclude =
+    requestedLocale === currentLocale &&
+    normalizeWikiSlug(currentRouteSlug) === normalizeWikiSlug(baseSlug);
 
 let entry = isSelfInclude ? undefined : await getEntry('wiki', `${requestedLocale}/${baseSlug}`)
 if (!entry && requestedLocale !== defaultLocale) {
     entry = await getEntry('wiki', `${defaultLocale}/${baseSlug}`)
 }
 if (!entry) {
-    entry = await getEntry('wiki', baseSlug)
+    for (const loc of locales) {
+        if (loc === requestedLocale || loc === defaultLocale) continue;
+        entry = await getEntry('wiki', `${loc}/${baseSlug}`);
+        if (entry) break;
+    }
 }
 
 let Content: any = null
